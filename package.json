@@ -17,16 +17,9 @@
   },
   "homepage": "https://github.com/lhf552004/FLCos#readme",
   "dependencies": {
-    "body-parser": "^1.15.2",
-    "cookie-parser": "^1.4.3",
-    "express": "^4.14.0",
-    "express3-handlebars": "^0.5.2",
-    "hbs": "^4.0.0",
-    "i18n": "^0.8.3",
-    "mysql": "^2.11.1",
     "node-opcua": "0.0.56",
     "requirish": "^0.3.0",
-    "sequelize": "^3.23.6",
-    "socket.io": "^1.4.8"
+    "underscore": "^1.8.3",
+    "yargs": "^4.8.1"
   }
 }
