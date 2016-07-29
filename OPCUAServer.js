@@ -431,6 +431,14 @@ server.on("post_initialize", function () {
         value: new Variant({dataType: DataType.Double, value: 0.0})
     });
 
+    var ParLL_isBelowBin = addressSpace.addVariable({
+        organizedBy: BIN1_Parameter,
+        browseName: "ParLL_isBelowBin",
+        nodeId: "ns=1;s=ParLL_isBelowBin",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+
     //hand take
     var HT = addressSpace.addFolder(PLC1, {browseName: "HT"});
     //scales
