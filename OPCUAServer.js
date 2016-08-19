@@ -186,282 +186,472 @@ server.on("post_initialize", function () {
     // });
 
     //PLC
-    var PLC1 = addressSpace.addFolder(rootFolder.objects, {browseName: "PLC1"});
+    var PLC1 = addressSpace.addFolder(rootFolder.objects, {
+        nodeId: "ns=1;s=PLC1",
+        browseName: "PLC1"
+    });
     //console.log('rootFolder.objects: '+rootFolder.objects);
     //console.log('PLC1: '+PLC1);
-    //INT1 intake interface
-    var LBCB = addressSpace.addFolder(PLC1, {browseName: "LBCB"});
-    //INT elevator
-    var LBEB = addressSpace.addFolder(PLC1, {browseName: "LBEB"});
-    //Storages
-    var BIN1 = addressSpace.addFolder(PLC1, {browseName: "BIN1"});
-    var BIN2 = addressSpace.addFolder(PLC1, {browseName: "BIN2"});
-    var BIN3 = addressSpace.addFolder(PLC1, {browseName: "BIN3"});
-    var BIN4 = addressSpace.addFolder(PLC1, {browseName: "BIN4"});
-    var BIN5 = addressSpace.addFolder(PLC1, {browseName: "BIN5"});
-    var BIN6 = addressSpace.addFolder(PLC1, {browseName: "BIN6"});
-    var BIN7 = addressSpace.addFolder(PLC1, {browseName: "BIN7"});
+    //Elevator--------------------------------------------
+    //----------------------------------------------------
+    var A_1006_MXZ01 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.A_1006_MXZ01",
+        browseName: "A_1006_MXZ01"
+    });
+    //Elevator commands, hardwareIO and Information
+    var A_1006_MXZ01_Information = addressSpace.addFolder(A_1006_MXZ01, {
+        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information",
+        browseName: "Information"
+    });
+    var A_1006_MXZ01_HardwareIO = addressSpace.addFolder(A_1006_MXZ01, {
+        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO",
+        browseName: "HardwareIO"
+    });
+    //Information of Elevator------------------------------
+    //Element state code
+    var StCode = addressSpace.addVariable({
+        organizedBy: A_1006_MXZ01_Information,
+        browseName: "StCode",
+        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information.StCode",
+        dataType: "Int16",
+        value: new Variant({dataType: DataType.Int16, value: 0})
+    });
+    //Last textnumber send to log
+    var OutAlarmNoLog = addressSpace.addVariable({
+        organizedBy: A_1006_MXZ01_Information,
+        browseName: "OutAlarmNoLog",
+        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information.OutAlarmNoLog",
+        dataType: "Int16",
+        value: new Variant({dataType: DataType.Int16, value: 0})
+    });
+    //hardware IOs of Elevator------------------------------
+    var A_1006_MXZ01_I = addressSpace.addVariable({
+        organizedBy: A_1006_MXZ01_HardwareIO,
+        browseName: "A_1006_MXZ01_I",
+        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO.A_1006_MXZ01_I",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var A_1006_MXZ01_O = addressSpace.addVariable({
+        organizedBy: A_1006_MXZ01_HardwareIO,
+        browseName: "A_1006_MXZ01_O",
+        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO.A_1006_MXZ01_O",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    //Elevator speed tester---------------------------------
+    //------------------------------------------------------
+    var A_1006_BST01 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.A_1006_BST01",
+        browseName: "A_1006_BST01"
+    });
+    //Elevator speed tester commands, hardwareIO and Information
+    var A_1006_BST01_Information = addressSpace.addFolder(A_1006_BST01, {
+        nodeId: "ns=1;s=PLC1.A_1006_BST01.Information",
+        browseName: "Information"
+    });
+    var A_1006_BST01_HardwareIO = addressSpace.addFolder(A_1006_BST01, {
+        nodeId: "ns=1;s=PLC1.A_1006_BST01.HardwareIO",
+        browseName: "HardwareIO"
+    });
+    //Information of Elevator------------------------------
+    //Element state code
+    var A_1006_BST01_StCode = addressSpace.addVariable({
+        organizedBy: A_1006_BST01_Information,
+        browseName: "StCode",
+        nodeId: "ns=1;s=PLC1.A_1006_BST01.Information.StCode",
+        dataType: "Int16",
+        value: new Variant({dataType: DataType.Int16, value: 0})
+    });
+    //Last textnumber send to log
+    var A_1006_BST01_OutAlarmNoLog = addressSpace.addVariable({
+        organizedBy: A_1006_BST01_Information,
+        browseName: "OutAlarmNoLog",
+        nodeId: "ns=1;s=PLC1.A_1006_BST01.Information.OutAlarmNoLog",
+        dataType: "Int16",
+        value: new Variant({dataType: DataType.Int16, value: 0})
+    });
+    //hardware IOs of Elevator------------------------------
+    //test speed of elevator
+    var A_1006_BST01_I = addressSpace.addVariable({
+        organizedBy: A_1006_BST01_HardwareIO,
+        browseName: "A_1006_BST01_I",
+        nodeId: "ns=1;s=PLC1.A_1006_BST01.HardwareIO.A_1006_BST01_I",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+
+    //BIN001
+    var BIN001 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.BIN001",
+        browseName: "BIN001"
+    });
+
     //bin commands, hardwareIO and Information
-    var BIN1_Commands = addressSpace.addFolder(BIN1, {browseName: "Commands"});
-    var BIN1_HardwareIO = addressSpace.addFolder(BIN1, {browseName: "HardwareIO"});
-    var BIN1_Information = addressSpace.addFolder(BIN1, {browseName: "Information"});
-    var BIN1_Parameter = addressSpace.addFolder(BIN1, {browseName: "Parameter"});
-    var BIN1_States = addressSpace.addFolder(BIN1, {browseName: "States"});
-    //commands
-    var CmdOverrideLL = addressSpace.addVariable({
-        organizedBy: BIN1_Commands,
+    var BIN001_Commands = addressSpace.addFolder(BIN001, {
+        nodeId: "ns=1;s=PLC1.BIN001.Commands",
+        browseName: "Commands"
+    });
+    var BIN001_HardwareIO = addressSpace.addFolder(BIN001, {
+        nodeId: "ns=1;s=PLC1.BIN001.HardwareIO",
+        browseName: "HardwareIO"
+    });
+    var BIN001_Information = addressSpace.addFolder(BIN001, {
+        nodeId: "ns=1;s=PLC1.BIN001.Information",
+        browseName: "Information"
+    });
+    var BIN001_Parameter = addressSpace.addFolder(BIN001, {
+        nodeId: "ns=1;s=PLC1.BIN001.Parameter",
+        browseName: "Parameter"
+    });
+    var BIN001_States = addressSpace.addFolder(BIN001, {
+        nodeId: "ns=1;s=PLC1.BIN001.States",
+        browseName: "States"
+    });
+    //information
+    var BIN001_ParBinNo = addressSpace.addVariable({
+        organizedBy: BIN001_Information,
+        browseName: "ParBinNo",
+        nodeId: "ns=1;s=PLC1.BIN001.Information.ParBinNo",
+        dataType: "Int16",
+        value: new Variant({dataType: DataType.Int16, value: 0})
+    });
+    var BIN001_InReceiverCounter = addressSpace.addVariable({
+        organizedBy: BIN001_Information,
+        browseName: "InReceiverCounter",
+        nodeId: "ns=1;s=PLC1.BIN001.Information.InReceiverCounter",
+        dataType: "Byte",
+        value: new Variant({dataType: DataType.Byte, value: 0})
+    });
+    var BIN001_OutReceiverCounter = addressSpace.addVariable({
+        organizedBy: BIN001_Information,
+        browseName: "OutReceiverCounter",
+        nodeId: "ns=1;s=PLC1.BIN001.Information.OutReceiverCounter",
+        dataType: "Byte",
+        value: new Variant({dataType: DataType.Byte, value: 0})
+    });
+    var BIN001_InOutOverfillWeight = addressSpace.addVariable({
+        organizedBy: BIN001_Information,
+        browseName: "InOutOverfillWeight",
+        nodeId: "ns=1;s=PLC1.BIN001.Information.InOutOverfillWeight",
+        dataType: "Double",
+        value: new Variant({dataType: DataType.Double, value: 0.0})
+    });
+    var BIN001_InOutFillingWeight = addressSpace.addVariable({
+        organizedBy: BIN001_Information,
+        browseName: "InOutFillingWeight",
+        nodeId: "ns=1;s=PLC1.BIN001.Information.InOutFillingWeight",
+        dataType: "Double",
+        value: new Variant({dataType: DataType.Double, value: 0.0})
+    });
+    var BIN001_InFillLevel = addressSpace.addVariable({
+        organizedBy: BIN001_Information,
+        browseName: "InFillLevel",
+        nodeId: "ns=1;s=PLC1.BIN001.Information.InFillLevel",
+        dataType: "Double",
+        value: new Variant({dataType: DataType.Double, value: 0.0})
+    });
+    var BIN001_InRestdischargeWeight = addressSpace.addVariable({
+        organizedBy: BIN001_Information,
+        browseName: "InRestdischargeWeight",
+        nodeId: "ns=1;s=PLC1.BIN001.Information.InRestdischargeWeight",
+        dataType: "Double",
+        value: new Variant({dataType: DataType.Double, value: 0.0})
+    });
+
+    //states
+    var BIN001_InLowLevel = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "InLowLevel",
+        nodeId: "ns=1;s=PLC1.BIN001.States.InLowLevel",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_InFeedOffLL = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "InFeedOffLL",
+        nodeId: "ns=1;s=PLC1.BIN001.States.InFeedOffLL",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_InHighLevel = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "InHighLevel",
+        nodeId: "ns=1;s=PLC1.BIN001.States.InHighLevel",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_InFeedOffHL = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "InFeedOffHL",
+        nodeId: "ns=1;s=PLC1.BIN001.States.InFeedOffHL",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_InOutEmpty = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "InOutEmpty",
+        nodeId: "ns=1;s=PLC1.BIN001.States.InOutEmpty",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_CmdOverrideLL = addressSpace.addVariable({
+        organizedBy: BIN001_States,
         browseName: "CmdOverrideLL",
-        nodeId: "ns=1;s=CmdOverrideLL",
+        nodeId: "ns=1;s=PLC1.BIN001.States.CmdOverrideLL",
         dataType: "Boolean",
         value: new Variant({dataType: DataType.Boolean, value: false})
     });
-    var CmdOverrideHL = addressSpace.addVariable({
-        organizedBy: BIN1_Commands,
+    var BIN001_CmdOverrideHL = addressSpace.addVariable({
+        organizedBy: BIN001_States,
         browseName: "CmdOverrideHL",
-        nodeId: "ns=1;s=CmdOverrideHL",
+        nodeId: "ns=1;s=PLC1.BIN001.States.CmdOverrideHL",
         dataType: "Boolean",
         value: new Variant({dataType: DataType.Boolean, value: false})
     });
-    var CmdDischarging = addressSpace.addVariable({
-        organizedBy: BIN1_Commands,
+    var BIN001_CmdDischarging = addressSpace.addVariable({
+        organizedBy: BIN001_States,
         browseName: "CmdDischarging",
-        nodeId: "ns=1;s=CmdDischarging",
+        nodeId: "ns=1;s=PLC1.BIN001.States.CmdDischarging",
         dataType: "Boolean",
         value: new Variant({dataType: DataType.Boolean, value: false})
     });
-    var CmdFilling = addressSpace.addVariable({
-        organizedBy: BIN1_Commands,
+    var BIN001_CmdFilling = addressSpace.addVariable({
+        organizedBy: BIN001_States,
         browseName: "CmdFilling",
-        nodeId: "ns=1;s=CmdFilling",
+        nodeId: "ns=1;s=PLC1.BIN001.States.CmdFilling",
         dataType: "Boolean",
         value: new Variant({dataType: DataType.Boolean, value: false})
     });
-    var CmdLastReceiverActive = addressSpace.addVariable({
-        organizedBy: BIN1_Commands,
+    var BIN001_CmdLastReceiverActive = addressSpace.addVariable({
+        organizedBy: BIN001_States,
         browseName: "CmdLastReceiverActive",
-        nodeId: "ns=1;s=CmdLastReceiverActive",
+        nodeId: "ns=1;s=PLC1.BIN001.States.CmdLastReceiverActive",
         dataType: "Boolean",
         value: new Variant({dataType: DataType.Boolean, value: false})
     });
-    var CmdLastSenderActive = addressSpace.addVariable({
-        organizedBy: BIN1_Commands,
+    var BIN001_CmdLastSenderActive = addressSpace.addVariable({
+        organizedBy: BIN001_States,
         browseName: "CmdLastSenderActive",
-        nodeId: "ns=1;s=CmdLastSenderActive",
+        nodeId: "ns=1;s=PLC1.BIN001.States.CmdLastSenderActive",
         dataType: "Boolean",
         value: new Variant({dataType: DataType.Boolean, value: false})
     });
+    var BIN001_InDPFaultLL = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "InDPFaultLL",
+        nodeId: "ns=1;s=PLC1.BIN001.States.InDPFaultLL",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_InDPFaultHL = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "InDPFaultHL",
+        nodeId: "ns=1;s=PLC1.BIN001.States.InDPFaultHL",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_InRefillLevel = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "InRefillLevel",
+        nodeId: "ns=1;s=PLC1.BIN001.States.InRefillLevel",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+
+
+    var BIN001_OutLowLevel = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutLowLevel",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutLowLevel",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutHighLevel = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutHighLevel",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutHighLevel",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutDischarging = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutDischarging",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutDischarging",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutFilling = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutFilling",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutFilling",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutFull = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutFull",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutFull",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutOverrideLL = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutOverrideLL",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutOverrideLL",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutOverrideHL = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutOverrideHL",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutOverrideHL",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutDryFillingDone = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutDryFillingDone",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutDryFillingDone",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutLastReceiverActive = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutLastReceiverActive",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutLastReceiverActive",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_OutLastSenderActive = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "OutLastSenderActive",
+        nodeId: "ns=1;s=PLC1.BIN001.States.OutLastSenderActive",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    var BIN001_VarInLowLevel = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "VarInLowLevel",
+        nodeId: "ns=1;s=PLC1.BIN001.States.VarInLowLevel",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+
+    //commands
+    var BIN001_ParLL_isBelowBin = addressSpace.addVariable({
+        organizedBy: BIN001_States,
+        browseName: "ParLL_isBelowBin",
+        nodeId: "ns=1;s=PLC1.BIN001.States.ParLL_isBelowBin",
+        dataType: "Boolean",
+        value: new Variant({dataType: DataType.Boolean, value: false})
+    });
+    //----------------------------
+
+    //commands
+
+
 
     //hardwareIO
-    var InLowLevel = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "InLowLevel",
-        nodeId: "ns=1;s=InLowLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var InFeedOffLL = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "InFeedOffLL",
-        nodeId: "ns=1;s=InFeedOffLL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var InHighLevel = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "InHighLevel",
-        nodeId: "ns=1;s=InHighLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var InFeedOffHL = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "InFeedOffHL",
-        nodeId: "ns=1;s=InFeedOffHL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var InOutEmpty = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "InOutEmpty",
-        nodeId: "ns=1;s=InOutEmpty",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var InDPFaultLL = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "InDPFaultLL",
-        nodeId: "ns=1;s=InDPFaultLL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var InDPFaultHL = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "InDPFaultHL",
-        nodeId: "ns=1;s=InDPFaultHL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var InRefillLevel = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "InRefillLevel",
-        nodeId: "ns=1;s=InRefillLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
 
 
-    var OutLowLevel = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutLowLevel",
-        nodeId: "ns=1;s=OutLowLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
+
+
+
+
+
+    //----------------------------------------------------------
+    var BIN2 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.BIN2",
+        browseName: "BIN2"
     });
-    var OutHighLevel = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutHighLevel",
-        nodeId: "ns=1;s=OutHighLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
+    var BIN3 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.BIN3",
+        browseName: "BIN3"
     });
-    var OutDischarging = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutDischarging",
-        nodeId: "ns=1;s=OutDischarging",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
+    var BIN4 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.BIN4",
+        browseName: "BIN4"
     });
-    var OutFilling = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutFilling",
-        nodeId: "ns=1;s=OutFilling",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
+    var BIN5 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.BIN5",
+        browseName: "BIN5"
     });
-    var OutFull = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutFull",
-        nodeId: "ns=1;s=OutFull",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
+    var BIN6 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.BIN6",
+        browseName: "BIN6"
     });
-    var OutOverrideLL = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutOverrideLL",
-        nodeId: "ns=1;s=OutOverrideLL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var OutOverrideHL = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutOverrideHL",
-        nodeId: "ns=1;s=OutOverrideHL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var OutDryFillingDone = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutDryFillingDone",
-        nodeId: "ns=1;s=OutDryFillingDone",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var OutLastReceiverActive = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutLastReceiverActive",
-        nodeId: "ns=1;s=OutLastReceiverActive",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var OutLastSenderActive = addressSpace.addVariable({
-        organizedBy: BIN1_HardwareIO,
-        browseName: "OutLastSenderActive",
-        nodeId: "ns=1;s=OutLastSenderActive",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    //variables
-    var VarInLowLevel = addressSpace.addVariable({
-        organizedBy: BIN1_Parameter,
-        browseName: "VarInLowLevel",
-        nodeId: "ns=1;s=VarInLowLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var InReceiverCounter = addressSpace.addVariable({
-        organizedBy: BIN1_Parameter,
-        browseName: "InReceiverCounter",
-        nodeId: "ns=1;s=InReceiverCounter",
-        dataType: "Byte",
-        value: new Variant({dataType: DataType.Byte, value: 0})
-    });
-    var OutReceiverCounter = addressSpace.addVariable({
-        organizedBy: BIN1_Parameter,
-        browseName: "OutReceiverCounter",
-        nodeId: "ns=1;s=OutReceiverCounter",
-        dataType: "Byte",
-        value: new Variant({dataType: DataType.Byte, value: 0})
-    });
-    var InOutOverfillWeight = addressSpace.addVariable({
-        organizedBy: BIN1_Parameter,
-        browseName: "InOutOverfillWeight",
-        nodeId: "ns=1;s=InOutOverfillWeight",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 0.0})
-    });
-    var InOutFillingWeight = addressSpace.addVariable({
-        organizedBy: BIN1_Parameter,
-        browseName: "InOutFillingWeight",
-        nodeId: "ns=1;s=InOutFillingWeight",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 0.0})
-    });
-    var InFillLevel = addressSpace.addVariable({
-        organizedBy: BIN1_Parameter,
-        browseName: "InFillLevel",
-        nodeId: "ns=1;s=InFillLevel",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 0.0})
-    });
-    var InRestdischargeWeight = addressSpace.addVariable({
-        organizedBy: BIN1_Parameter,
-        browseName: "InRestdischargeWeight",
-        nodeId: "ns=1;s=InRestdischargeWeight",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 0.0})
+    var BIN7 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.BIN7",
+        browseName: "BIN7"
     });
 
-    var ParLL_isBelowBin = addressSpace.addVariable({
-        organizedBy: BIN1_Parameter,
-        browseName: "ParLL_isBelowBin",
-        nodeId: "ns=1;s=ParLL_isBelowBin",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
 
     //hand take
-    var HT = addressSpace.addFolder(PLC1, {browseName: "HT"});
+    var HT = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.HT",
+        browseName: "HT"
+    });
     //scales
-    var Scale1 = addressSpace.addFolder(PLC1, {browseName: "Scale1"});
-    var Scale2 = addressSpace.addFolder(PLC1, {browseName: "Scale2"});
+    var Scale1 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Scale1",
+        browseName: "Scale1"
+    });
+    var Scale2 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Scale2",
+        browseName: "Scale2"
+    });
     //it's for hand take
-    var Scale3 = addressSpace.addFolder(PLC1, {browseName: "Scale3"});
+    var Scale3 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Scale3",
+        browseName: "Scale3"
+    });
     //Mix1
-    var Mixer1 = addressSpace.addFolder(PLC1, {browseName: "Mixer1"});
+    var Mixer1 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Mixer1",
+        browseName: "Mixer1"
+    });
     //packing stations
-    var PK1 = addressSpace.addFolder(PLC1, {browseName: "PK1"});
-    var PK2 = addressSpace.addFolder(PLC1, {browseName: "PK2"});
+    var PK1 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.PK1",
+        browseName: "PK1"
+    });
+    var PK2 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.PK2",
+        browseName: "PK2"
+    });
 
     //Sections
-    var Section1 = addressSpace.addFolder(PLC1, {browseName: "Section1"});
-    var Section2 = addressSpace.addFolder(PLC1, {browseName: "Section2"});
-    var Section3 = addressSpace.addFolder(PLC1, {browseName: "Section3"});
-    var Section4 = addressSpace.addFolder(PLC1, {browseName: "Section4"});
+    var Section1 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Section1",
+        browseName: "Section1"
+    });
+    var Section2 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Section2",
+        browseName: "Section2"
+    });
+    var Section3 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Section3",
+        browseName: "Section3"
+    });
+    var Section4 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Section4",
+        browseName: "Section4"
+    });
 
     //Lines
-    var INT1 = addressSpace.addFolder(PLC1, {browseName: "INT1"});
-    var INT2 = addressSpace.addFolder(PLC1, {browseName: "INT2"});
-    var MIX1 = addressSpace.addFolder(PLC1, {browseName: "MIX1"});
+    var INT1 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.INT1",
+        browseName: "INT1"
+    });
+    var INT2 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.INT2",
+        browseName: "INT2"
+    });
+    var MIX1 = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.MIX1",
+        browseName: "MIX1"
+    });
 
     /**
      * variation 0:
