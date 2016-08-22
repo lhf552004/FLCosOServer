@@ -122,14 +122,47 @@ var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 var hostname = require("os").hostname();
 console.log('host name: ' + hostname);
 var fs = require('fs');
-var elementNodes = [];
-function getElementNode(parentNode,fullName){
-    var theElementNode ={};
-    elementNodes.forEach(function (elemN) {
-        
-    });
-    return theElementNode;
-    
+var logfile = 'OPCUAlog.txt';
+var wstream = fs.createWriteStream(logfile);
+
+function log(data) {
+    wstream.write(data + '\n');
+    console.log(data);
+}
+function getType(typeFromCsv) {
+    var theType = {
+        typeName: '',
+        DataType: 0,
+        value: null
+    };
+    if (typeFromCsv.indexOf('INT') > 0) {
+        theType.typeName = 'Int16';
+        theType.DataType = DataType.Int16;
+        theType.value = 0;
+    } else if (typeFromCsv.indexOf('BOOL') > 0) {
+        theType.typeName = 'Boolean';
+        theType.DataType = DataType.Boolean;
+        theType.value = false;
+    }
+    else if (typeFromCsv.indexOf('WORD') > 0) {
+        theType.typeName = 'Int64';
+        theType.DataType = DataType.Int64;
+        theType.value = 0;
+    } else if (typeFromCsv.indexOf('BYTE') > 0) {
+        theType.typeName = 'Byte';
+        theType.DataType = DataType.Byte;
+        theType.value = 0;
+    } else if (typeFromCsv.indexOf('REAL') > 0) {
+        theType.typeName = 'Double';
+        theType.DataType = DataType.Double;
+        theType.value = 0.0;
+    } else {
+        theType.typeName = 'String';
+        theType.DataType = DataType.String;
+        theType.value = '';
+    }
+    return theType;
+
 }
 server.on("post_initialize", function () {
 
@@ -142,516 +175,628 @@ server.on("post_initialize", function () {
     var rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");
 
-    // fs.readFile('PLC1OPCAlias.TXT', 'utf8', function (err, data) {
-    //     if (err) {
-    //         console.error(err);
-    //     }
-    //     else {
-    //         //console.log(data);
-    //         var elements = data.split('\n');
-    //         console.log(typeof elements);
-    //         console.log(elements.length);
-    //         elements.forEach( function ( element ) {
-    //             var infos =[];
-    //             var elementNode ={};
-    //             if ( element ) {
-    //                 infos = element.split( '\\t' );
-    //             }
-    //             if(infos.length>=2)
-    //             {
-    //                 var i =0;
-    //                 infos.forEach(function (info) {
-    //                     if(info){
-    //                         switch (i)
-    //                         {
-    //                             case 0 :
-    //
-    //                                 elementNode = getElementNode(info);
-    //                                 break;
-    //                             case 1 :
-    //                                 elementNode.address = info;
-    //                                 break;
-    //                             case 2 :
-    //                                 elementNode.description = info;
-    //                                 break;
-    //                         }
-    //                         i++;
-    //                     }
-    //                 });
-    //             }
-    //         } )
-    //
-    //     }
-    //
-    // });
 
     //PLC
     var PLC1 = addressSpace.addFolder(rootFolder.objects, {
         nodeId: "ns=1;s=PLC1",
         browseName: "PLC1"
     });
-    //console.log('rootFolder.objects: '+rootFolder.objects);
-    //console.log('PLC1: '+PLC1);
-    //Elevator--------------------------------------------
-    //----------------------------------------------------
-    var A_1006_MXZ01 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.A_1006_MXZ01",
-        browseName: "A_1006_MXZ01"
-    });
-    //Elevator commands, hardwareIO and Information
-    var A_1006_MXZ01_Information = addressSpace.addFolder(A_1006_MXZ01, {
-        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information",
-        browseName: "Information"
-    });
-    var A_1006_MXZ01_HardwareIO = addressSpace.addFolder(A_1006_MXZ01, {
-        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO",
-        browseName: "HardwareIO"
-    });
-    //Information of Elevator------------------------------
-    //Element state code
-    var StCode = addressSpace.addVariable({
-        organizedBy: A_1006_MXZ01_Information,
-        browseName: "StCode",
-        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information.StCode",
-        dataType: "Int16",
-        value: new Variant({dataType: DataType.Int16, value: 0})
-    });
-    //Last textnumber send to log
-    var OutAlarmNoLog = addressSpace.addVariable({
-        organizedBy: A_1006_MXZ01_Information,
-        browseName: "OutAlarmNoLog",
-        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information.OutAlarmNoLog",
-        dataType: "Int16",
-        value: new Variant({dataType: DataType.Int16, value: 0})
-    });
-    //hardware IOs of Elevator------------------------------
-    var A_1006_MXZ01_I = addressSpace.addVariable({
-        organizedBy: A_1006_MXZ01_HardwareIO,
-        browseName: "A_1006_MXZ01_I",
-        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO.A_1006_MXZ01_I",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var A_1006_MXZ01_O = addressSpace.addVariable({
-        organizedBy: A_1006_MXZ01_HardwareIO,
-        browseName: "A_1006_MXZ01_O",
-        nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO.A_1006_MXZ01_O",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    //Elevator speed tester---------------------------------
-    //------------------------------------------------------
-    var A_1006_BST01 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.A_1006_BST01",
-        browseName: "A_1006_BST01"
-    });
-    //Elevator speed tester commands, hardwareIO and Information
-    var A_1006_BST01_Information = addressSpace.addFolder(A_1006_BST01, {
-        nodeId: "ns=1;s=PLC1.A_1006_BST01.Information",
-        browseName: "Information"
-    });
-    var A_1006_BST01_HardwareIO = addressSpace.addFolder(A_1006_BST01, {
-        nodeId: "ns=1;s=PLC1.A_1006_BST01.HardwareIO",
-        browseName: "HardwareIO"
-    });
-    //Information of Elevator------------------------------
-    //Element state code
-    var A_1006_BST01_StCode = addressSpace.addVariable({
-        organizedBy: A_1006_BST01_Information,
-        browseName: "StCode",
-        nodeId: "ns=1;s=PLC1.A_1006_BST01.Information.StCode",
-        dataType: "Int16",
-        value: new Variant({dataType: DataType.Int16, value: 0})
-    });
-    //Last textnumber send to log
-    var A_1006_BST01_OutAlarmNoLog = addressSpace.addVariable({
-        organizedBy: A_1006_BST01_Information,
-        browseName: "OutAlarmNoLog",
-        nodeId: "ns=1;s=PLC1.A_1006_BST01.Information.OutAlarmNoLog",
-        dataType: "Int16",
-        value: new Variant({dataType: DataType.Int16, value: 0})
-    });
-    //hardware IOs of Elevator------------------------------
-    //test speed of elevator
-    var A_1006_BST01_I = addressSpace.addVariable({
-        organizedBy: A_1006_BST01_HardwareIO,
-        browseName: "A_1006_BST01_I",
-        nodeId: "ns=1;s=PLC1.A_1006_BST01.HardwareIO.A_1006_BST01_I",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
+    var elements=[];
+    var nodeId ='';
+    var infos=[];
+    var pathInfo = '';
+    var type = '';
+    var paths = [];
+    var parentNode = PLC1;
+    var oPCUAType = {};
+    // var rstream = fs.createReadStream('output.csv',{encoding: 'utf8'});
+    // rstream
+    //     .on('data', function (chunk) {
+    //         // console.log('chunk');
+    //         // console.dir(chunk);
+    //         elements = chunk.split('\n');
+    //         nodeId= 'ns=1;s=PLC1';
+    //         elements.forEach(function (element) {
+    //             infos= [];
+    //             log('element: ' + element);
+    //
+    //             if (element) {
+    //                 //first info is path; second info is type
+    //                 infos = element.split(',');
+    //             }
+    //
+    //             if (infos.length >= 2) {
+    //
+    //                 pathInfo = infos[0];
+    //                 type = infos[1];
+    //                 paths = pathInfo.split('.');
+    //                 oPCUAType = getType(type);
+    //                 paths.forEach(function (path, i) {
+    //                     parentNode = addressSpace.findNode(nodeId);
+    //                     if(!parentNode){
+    //                         log('parentNode not found! ' + nodeId);
+    //                     }
+    //                     nodeId += '.' + path;
+    //                     if (addressSpace.findNode(nodeId)) {
+    //                         log('find node: ' + nodeId);
+    //                     } else {
+    //                         log('not find node: ' + nodeId);
+    //                         //create new node
+    //                         if (i === paths.length - 1) {
+    //                             //it is variable
+    //                             if(parentNode) {
+    //                                 log('create variable: ' + nodeId + ', parentNode: ' + parentNode.browseName);
+    //                                 addressSpace.addVariable({
+    //                                     organizedBy: parentNode,
+    //                                     browseName: path,
+    //                                     nodeId: nodeId,
+    //                                     dataType: oPCUAType.typeName,
+    //                                     value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
+    //                                 });
+    //                             }else {
+    //                                 log('parentNode is empty ');
+    //                             }
+    //                             nodeId = 'ns=1;s=PLC1';
+    //                         }
+    //                         else {
+    //                             log('try to create folder: ' + nodeId + ' ... i: ' + i);
+    //                             try {
+    //                                 if(parentNode){
+    //                                     log('create folder: ' + nodeId +  ' ,parentNode: ' + parentNode.browseName);
+    //                                     addressSpace.addFolder(parentNode, {
+    //                                         nodeId: nodeId,
+    //                                         browseName: path
+    //                                     });
+    //                                 }
+    //                                 else {
+    //                                     log('parentNode is empty ');
+    //                                 }
+    //                             }catch (ex){
+    //                                 log(ex);
+    //                             }
+    //
+    //                         }
+    //                     }
+    //                 });
+    //             }
+    //         })
+    //
+    //     })
+    //     .on('end', function () {  // done
+    //         log('the end');
+    //     });
+    fs.readFile('output.csv', 'utf8', function (err, data) {
+        if (err) {
+            console.error(err);
+        }
+        else {
+            elements = data.split('\n');
+            nodeId= 'ns=1;s=PLC1';
+            elements.forEach(function (element) {
+                infos= [];
+                log('element: ' + element);
+
+                if (element) {
+                    //first info is path; second info is type
+                    infos = element.split(',');
+                }
+
+                if (infos.length >= 2) {
+
+                    pathInfo = infos[0];
+                    type = infos[1];
+                    paths = pathInfo.split('.');
+                    oPCUAType = getType(type);
+                    paths.forEach(function (path, i) {
+                        parentNode = addressSpace.findNode(nodeId);
+                        if(!parentNode){
+                            log('parentNode not found! ' + nodeId);
+                        }
+                        nodeId += '.' + path;
+                        if (addressSpace.findNode(nodeId)) {
+                            log('find node: ' + nodeId);
+                        } else {
+                            log('not find node: ' + nodeId);
+                            //create new node
+                            if (i === paths.length - 1) {
+                                //it is variable
+                                if(parentNode) {
+                                    log('create variable: ' + nodeId + ', parentNode: ' + parentNode.browseName);
+                                    addressSpace.addVariable({
+                                        organizedBy: parentNode,
+                                        browseName: path,
+                                        nodeId: nodeId,
+                                        dataType: oPCUAType.typeName,
+                                        value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
+                                    });
+                                }else {
+                                    log('parentNode is empty ');
+                                }
+                                nodeId = 'ns=1;s=PLC1';
+                            }
+                            else {
+                                log('try to create folder: ' + nodeId + ' ... i: ' + i);
+                                try {
+                                    if(parentNode){
+                                        log('create folder: ' + nodeId +  ' ,parentNode: ' + parentNode.browseName);
+                                        addressSpace.addFolder(parentNode, {
+                                            nodeId: nodeId,
+                                            browseName: path
+                                        });
+                                    }
+                                    else {
+                                        log('parentNode is empty ');
+                                    }
+                                }catch (ex){
+                                    log(ex);
+                                }
+
+                            }
+                        }
+                    });
+                }
+            })
+
+        }
+
     });
 
-    //BIN001
-    var BIN001 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.BIN001",
-        browseName: "BIN001"
-    });
-
-    //bin commands, hardwareIO and Information
-    var BIN001_Commands = addressSpace.addFolder(BIN001, {
-        nodeId: "ns=1;s=PLC1.BIN001.Commands",
-        browseName: "Commands"
-    });
-    var BIN001_HardwareIO = addressSpace.addFolder(BIN001, {
-        nodeId: "ns=1;s=PLC1.BIN001.HardwareIO",
-        browseName: "HardwareIO"
-    });
-    var BIN001_Information = addressSpace.addFolder(BIN001, {
-        nodeId: "ns=1;s=PLC1.BIN001.Information",
-        browseName: "Information"
-    });
-    var BIN001_Parameter = addressSpace.addFolder(BIN001, {
-        nodeId: "ns=1;s=PLC1.BIN001.Parameter",
-        browseName: "Parameter"
-    });
-    var BIN001_States = addressSpace.addFolder(BIN001, {
-        nodeId: "ns=1;s=PLC1.BIN001.States",
-        browseName: "States"
-    });
-    //information
-    var BIN001_ParBinNo = addressSpace.addVariable({
-        organizedBy: BIN001_Information,
-        browseName: "ParBinNo",
-        nodeId: "ns=1;s=PLC1.BIN001.Information.ParBinNo",
-        dataType: "Int16",
-        value: new Variant({dataType: DataType.Int16, value: 0})
-    });
-    var BIN001_InReceiverCounter = addressSpace.addVariable({
-        organizedBy: BIN001_Information,
-        browseName: "InReceiverCounter",
-        nodeId: "ns=1;s=PLC1.BIN001.Information.InReceiverCounter",
-        dataType: "Byte",
-        value: new Variant({dataType: DataType.Byte, value: 0})
-    });
-    var BIN001_OutReceiverCounter = addressSpace.addVariable({
-        organizedBy: BIN001_Information,
-        browseName: "OutReceiverCounter",
-        nodeId: "ns=1;s=PLC1.BIN001.Information.OutReceiverCounter",
-        dataType: "Byte",
-        value: new Variant({dataType: DataType.Byte, value: 0})
-    });
-    var BIN001_InOutOverfillWeight = addressSpace.addVariable({
-        organizedBy: BIN001_Information,
-        browseName: "InOutOverfillWeight",
-        nodeId: "ns=1;s=PLC1.BIN001.Information.InOutOverfillWeight",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 0.0})
-    });
-    var BIN001_InOutFillingWeight = addressSpace.addVariable({
-        organizedBy: BIN001_Information,
-        browseName: "InOutFillingWeight",
-        nodeId: "ns=1;s=PLC1.BIN001.Information.InOutFillingWeight",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 0.0})
-    });
-    var BIN001_InFillLevel = addressSpace.addVariable({
-        organizedBy: BIN001_Information,
-        browseName: "InFillLevel",
-        nodeId: "ns=1;s=PLC1.BIN001.Information.InFillLevel",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 0.0})
-    });
-    var BIN001_InRestdischargeWeight = addressSpace.addVariable({
-        organizedBy: BIN001_Information,
-        browseName: "InRestdischargeWeight",
-        nodeId: "ns=1;s=PLC1.BIN001.Information.InRestdischargeWeight",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 0.0})
-    });
-
-    //states
-    var BIN001_InLowLevel = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "InLowLevel",
-        nodeId: "ns=1;s=PLC1.BIN001.States.InLowLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_InFeedOffLL = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "InFeedOffLL",
-        nodeId: "ns=1;s=PLC1.BIN001.States.InFeedOffLL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_InHighLevel = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "InHighLevel",
-        nodeId: "ns=1;s=PLC1.BIN001.States.InHighLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_InFeedOffHL = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "InFeedOffHL",
-        nodeId: "ns=1;s=PLC1.BIN001.States.InFeedOffHL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_InOutEmpty = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "InOutEmpty",
-        nodeId: "ns=1;s=PLC1.BIN001.States.InOutEmpty",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_CmdOverrideLL = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "CmdOverrideLL",
-        nodeId: "ns=1;s=PLC1.BIN001.States.CmdOverrideLL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_CmdOverrideHL = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "CmdOverrideHL",
-        nodeId: "ns=1;s=PLC1.BIN001.States.CmdOverrideHL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_CmdDischarging = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "CmdDischarging",
-        nodeId: "ns=1;s=PLC1.BIN001.States.CmdDischarging",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_CmdFilling = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "CmdFilling",
-        nodeId: "ns=1;s=PLC1.BIN001.States.CmdFilling",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_CmdLastReceiverActive = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "CmdLastReceiverActive",
-        nodeId: "ns=1;s=PLC1.BIN001.States.CmdLastReceiverActive",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_CmdLastSenderActive = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "CmdLastSenderActive",
-        nodeId: "ns=1;s=PLC1.BIN001.States.CmdLastSenderActive",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_InDPFaultLL = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "InDPFaultLL",
-        nodeId: "ns=1;s=PLC1.BIN001.States.InDPFaultLL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_InDPFaultHL = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "InDPFaultHL",
-        nodeId: "ns=1;s=PLC1.BIN001.States.InDPFaultHL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_InRefillLevel = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "InRefillLevel",
-        nodeId: "ns=1;s=PLC1.BIN001.States.InRefillLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-
-
-    var BIN001_OutLowLevel = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutLowLevel",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutLowLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutHighLevel = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutHighLevel",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutHighLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutDischarging = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutDischarging",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutDischarging",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutFilling = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutFilling",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutFilling",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutFull = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutFull",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutFull",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutOverrideLL = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutOverrideLL",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutOverrideLL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutOverrideHL = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutOverrideHL",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutOverrideHL",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutDryFillingDone = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutDryFillingDone",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutDryFillingDone",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutLastReceiverActive = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutLastReceiverActive",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutLastReceiverActive",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_OutLastSenderActive = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "OutLastSenderActive",
-        nodeId: "ns=1;s=PLC1.BIN001.States.OutLastSenderActive",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    var BIN001_VarInLowLevel = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "VarInLowLevel",
-        nodeId: "ns=1;s=PLC1.BIN001.States.VarInLowLevel",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-
-    //commands
-    var BIN001_ParLL_isBelowBin = addressSpace.addVariable({
-        organizedBy: BIN001_States,
-        browseName: "ParLL_isBelowBin",
-        nodeId: "ns=1;s=PLC1.BIN001.States.ParLL_isBelowBin",
-        dataType: "Boolean",
-        value: new Variant({dataType: DataType.Boolean, value: false})
-    });
-    //----------------------------
-
-    //commands
-
-
-
-    //hardwareIO
-
-
-
-
-
-
-
-    //----------------------------------------------------------
-    var BIN2 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.BIN2",
-        browseName: "BIN2"
-    });
-    var BIN3 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.BIN3",
-        browseName: "BIN3"
-    });
-    var BIN4 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.BIN4",
-        browseName: "BIN4"
-    });
-    var BIN5 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.BIN5",
-        browseName: "BIN5"
-    });
-    var BIN6 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.BIN6",
-        browseName: "BIN6"
-    });
-    var BIN7 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.BIN7",
-        browseName: "BIN7"
-    });
-
-
-    //hand take
-    var HT = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.HT",
-        browseName: "HT"
-    });
-    //scales
-    var Scale1 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.Scale1",
-        browseName: "Scale1"
-    });
-    var Scale2 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.Scale2",
-        browseName: "Scale2"
-    });
-    //it's for hand take
-    var Scale3 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.Scale3",
-        browseName: "Scale3"
-    });
-    //Mix1
-    var Mixer1 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.Mixer1",
-        browseName: "Mixer1"
-    });
-    //packing stations
-    var PK1 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.PK1",
-        browseName: "PK1"
-    });
-    var PK2 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.PK2",
-        browseName: "PK2"
-    });
-
-    //Sections
-    var Section1 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.Section1",
-        browseName: "Section1"
-    });
-    var Section2 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.Section2",
-        browseName: "Section2"
-    });
-    var Section3 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.Section3",
-        browseName: "Section3"
-    });
-    var Section4 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.Section4",
-        browseName: "Section4"
-    });
-
-    //Lines
-    var INT1 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.INT1",
-        browseName: "INT1"
-    });
-    var INT2 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.INT2",
-        browseName: "INT2"
-    });
-    var MIX1 = addressSpace.addFolder(PLC1, {
-        nodeId: "ns=1;s=PLC1.MIX1",
-        browseName: "MIX1"
-    });
+    // //console.log('rootFolder.objects: '+rootFolder.objects);
+    // //console.log('PLC1: '+PLC1);
+    // //Elevator--------------------------------------------
+    // //----------------------------------------------------
+    // var A_1006_MXZ01 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.A_1006_MXZ01",
+    //     browseName: "A_1006_MXZ01"
+    // });
+    // //Elevator commands, hardwareIO and Information
+    // var A_1006_MXZ01_Information = addressSpace.addFolder(A_1006_MXZ01, {
+    //     nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information",
+    //     browseName: "Information"
+    // });
+    // var A_1006_MXZ01_HardwareIO = addressSpace.addFolder(A_1006_MXZ01, {
+    //     nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO",
+    //     browseName: "HardwareIO"
+    // });
+    // //Information of Elevator------------------------------
+    // //Element state code
+    // var StCode = addressSpace.addVariable({
+    //     organizedBy: A_1006_MXZ01_Information,
+    //     browseName: "StCode",
+    //     nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information.StCode",
+    //     dataType: "Int16",
+    //     value: new Variant({dataType: DataType.Int16, value: 0})
+    // });
+    // //Last textnumber send to log
+    // var OutAlarmNoLog = addressSpace.addVariable({
+    //     organizedBy: A_1006_MXZ01_Information,
+    //     browseName: "OutAlarmNoLog",
+    //     nodeId: "ns=1;s=PLC1.A_1006_MXZ01.Information.OutAlarmNoLog",
+    //     dataType: "Int16",
+    //     value: new Variant({dataType: DataType.Int16, value: 0})
+    // });
+    // //hardware IOs of Elevator------------------------------
+    // var A_1006_MXZ01_I = addressSpace.addVariable({
+    //     organizedBy: A_1006_MXZ01_HardwareIO,
+    //     browseName: "A_1006_MXZ01_I",
+    //     nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO.A_1006_MXZ01_I",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var A_1006_MXZ01_O = addressSpace.addVariable({
+    //     organizedBy: A_1006_MXZ01_HardwareIO,
+    //     browseName: "A_1006_MXZ01_O",
+    //     nodeId: "ns=1;s=PLC1.A_1006_MXZ01.HardwareIO.A_1006_MXZ01_O",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // //Elevator speed tester---------------------------------
+    // //------------------------------------------------------
+    // var A_1006_BST01 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.A_1006_BST01",
+    //     browseName: "A_1006_BST01"
+    // });
+    // //Elevator speed tester commands, hardwareIO and Information
+    // var A_1006_BST01_Information = addressSpace.addFolder(A_1006_BST01, {
+    //     nodeId: "ns=1;s=PLC1.A_1006_BST01.Information",
+    //     browseName: "Information"
+    // });
+    // var A_1006_BST01_HardwareIO = addressSpace.addFolder(A_1006_BST01, {
+    //     nodeId: "ns=1;s=PLC1.A_1006_BST01.HardwareIO",
+    //     browseName: "HardwareIO"
+    // });
+    // //Information of Elevator------------------------------
+    // //Element state code
+    // var A_1006_BST01_StCode = addressSpace.addVariable({
+    //     organizedBy: A_1006_BST01_Information,
+    //     browseName: "StCode",
+    //     nodeId: "ns=1;s=PLC1.A_1006_BST01.Information.StCode",
+    //     dataType: "Int16",
+    //     value: new Variant({dataType: DataType.Int16, value: 0})
+    // });
+    // //Last textnumber send to log
+    // var A_1006_BST01_OutAlarmNoLog = addressSpace.addVariable({
+    //     organizedBy: A_1006_BST01_Information,
+    //     browseName: "OutAlarmNoLog",
+    //     nodeId: "ns=1;s=PLC1.A_1006_BST01.Information.OutAlarmNoLog",
+    //     dataType: "Int16",
+    //     value: new Variant({dataType: DataType.Int16, value: 0})
+    // });
+    // //hardware IOs of Elevator------------------------------
+    // //test speed of elevator
+    // var A_1006_BST01_I = addressSpace.addVariable({
+    //     organizedBy: A_1006_BST01_HardwareIO,
+    //     browseName: "A_1006_BST01_I",
+    //     nodeId: "ns=1;s=PLC1.A_1006_BST01.HardwareIO.A_1006_BST01_I",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    //
+    // //BIN001
+    // var BIN001 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.BIN001",
+    //     browseName: "BIN001"
+    // });
+    //
+    // //bin commands, hardwareIO and Information
+    // var BIN001_Commands = addressSpace.addFolder(BIN001, {
+    //     nodeId: "ns=1;s=PLC1.BIN001.Commands",
+    //     browseName: "Commands"
+    // });
+    // var BIN001_HardwareIO = addressSpace.addFolder(BIN001, {
+    //     nodeId: "ns=1;s=PLC1.BIN001.HardwareIO",
+    //     browseName: "HardwareIO"
+    // });
+    // var BIN001_Information = addressSpace.addFolder(BIN001, {
+    //     nodeId: "ns=1;s=PLC1.BIN001.Information",
+    //     browseName: "Information"
+    // });
+    // var BIN001_Parameter = addressSpace.addFolder(BIN001, {
+    //     nodeId: "ns=1;s=PLC1.BIN001.Parameter",
+    //     browseName: "Parameter"
+    // });
+    // var BIN001_States = addressSpace.addFolder(BIN001, {
+    //     nodeId: "ns=1;s=PLC1.BIN001.States",
+    //     browseName: "States"
+    // });
+    // //information
+    // var BIN001_ParBinNo = addressSpace.addVariable({
+    //     organizedBy: BIN001_Information,
+    //     browseName: "ParBinNo",
+    //     nodeId: "ns=1;s=PLC1.BIN001.Information.ParBinNo",
+    //     dataType: "Int16",
+    //     value: new Variant({dataType: DataType.Int16, value: 0})
+    // });
+    // var BIN001_InReceiverCounter = addressSpace.addVariable({
+    //     organizedBy: BIN001_Information,
+    //     browseName: "InReceiverCounter",
+    //     nodeId: "ns=1;s=PLC1.BIN001.Information.InReceiverCounter",
+    //     dataType: "Byte",
+    //     value: new Variant({dataType: DataType.Byte, value: 0})
+    // });
+    // var BIN001_OutReceiverCounter = addressSpace.addVariable({
+    //     organizedBy: BIN001_Information,
+    //     browseName: "OutReceiverCounter",
+    //     nodeId: "ns=1;s=PLC1.BIN001.Information.OutReceiverCounter",
+    //     dataType: "Byte",
+    //     value: new Variant({dataType: DataType.Byte, value: 0})
+    // });
+    // var BIN001_InOutOverfillWeight = addressSpace.addVariable({
+    //     organizedBy: BIN001_Information,
+    //     browseName: "InOutOverfillWeight",
+    //     nodeId: "ns=1;s=PLC1.BIN001.Information.InOutOverfillWeight",
+    //     dataType: "Double",
+    //     value: new Variant({dataType: DataType.Double, value: 0.0})
+    // });
+    // var BIN001_InOutFillingWeight = addressSpace.addVariable({
+    //     organizedBy: BIN001_Information,
+    //     browseName: "InOutFillingWeight",
+    //     nodeId: "ns=1;s=PLC1.BIN001.Information.InOutFillingWeight",
+    //     dataType: "Double",
+    //     value: new Variant({dataType: DataType.Double, value: 0.0})
+    // });
+    // var BIN001_InFillLevel = addressSpace.addVariable({
+    //     organizedBy: BIN001_Information,
+    //     browseName: "InFillLevel",
+    //     nodeId: "ns=1;s=PLC1.BIN001.Information.InFillLevel",
+    //     dataType: "Double",
+    //     value: new Variant({dataType: DataType.Double, value: 0.0})
+    // });
+    // var BIN001_InRestdischargeWeight = addressSpace.addVariable({
+    //     organizedBy: BIN001_Information,
+    //     browseName: "InRestdischargeWeight",
+    //     nodeId: "ns=1;s=PLC1.BIN001.Information.InRestdischargeWeight",
+    //     dataType: "Double",
+    //     value: new Variant({dataType: DataType.Double, value: 0.0})
+    // });
+    //
+    // //states
+    // var BIN001_InLowLevel = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "InLowLevel",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.InLowLevel",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_InFeedOffLL = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "InFeedOffLL",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.InFeedOffLL",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_InHighLevel = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "InHighLevel",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.InHighLevel",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_InFeedOffHL = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "InFeedOffHL",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.InFeedOffHL",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_InOutEmpty = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "InOutEmpty",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.InOutEmpty",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_CmdOverrideLL = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "CmdOverrideLL",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.CmdOverrideLL",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_CmdOverrideHL = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "CmdOverrideHL",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.CmdOverrideHL",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_CmdDischarging = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "CmdDischarging",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.CmdDischarging",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_CmdFilling = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "CmdFilling",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.CmdFilling",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_CmdLastReceiverActive = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "CmdLastReceiverActive",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.CmdLastReceiverActive",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_CmdLastSenderActive = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "CmdLastSenderActive",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.CmdLastSenderActive",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_InDPFaultLL = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "InDPFaultLL",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.InDPFaultLL",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_InDPFaultHL = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "InDPFaultHL",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.InDPFaultHL",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_InRefillLevel = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "InRefillLevel",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.InRefillLevel",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    //
+    //
+    // var BIN001_OutLowLevel = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutLowLevel",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutLowLevel",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutHighLevel = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutHighLevel",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutHighLevel",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutDischarging = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutDischarging",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutDischarging",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutFilling = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutFilling",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutFilling",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutFull = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutFull",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutFull",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutOverrideLL = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutOverrideLL",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutOverrideLL",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutOverrideHL = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutOverrideHL",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutOverrideHL",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutDryFillingDone = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutDryFillingDone",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutDryFillingDone",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutLastReceiverActive = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutLastReceiverActive",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutLastReceiverActive",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_OutLastSenderActive = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "OutLastSenderActive",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.OutLastSenderActive",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // var BIN001_VarInLowLevel = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "VarInLowLevel",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.VarInLowLevel",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    //
+    // //commands
+    // var BIN001_ParLL_isBelowBin = addressSpace.addVariable({
+    //     organizedBy: BIN001_States,
+    //     browseName: "ParLL_isBelowBin",
+    //     nodeId: "ns=1;s=PLC1.BIN001.States.ParLL_isBelowBin",
+    //     dataType: "Boolean",
+    //     value: new Variant({dataType: DataType.Boolean, value: false})
+    // });
+    // //----------------------------
+    //
+    // //commands
+    //
+    //
+    // //hardwareIO
+    //
+    //
+    // //----------------------------------------------------------
+    // var BIN2 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.BIN2",
+    //     browseName: "BIN2"
+    // });
+    // var BIN3 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.BIN3",
+    //     browseName: "BIN3"
+    // });
+    // var BIN4 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.BIN4",
+    //     browseName: "BIN4"
+    // });
+    // var BIN5 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.BIN5",
+    //     browseName: "BIN5"
+    // });
+    // var BIN6 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.BIN6",
+    //     browseName: "BIN6"
+    // });
+    // var BIN7 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.BIN7",
+    //     browseName: "BIN7"
+    // });
+    //
+    //
+    // //hand take
+    // var HT = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.HT",
+    //     browseName: "HT"
+    // });
+    // //scales
+    // var Scale1 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.Scale1",
+    //     browseName: "Scale1"
+    // });
+    // var Scale2 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.Scale2",
+    //     browseName: "Scale2"
+    // });
+    // //it's for hand take
+    // var Scale3 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.Scale3",
+    //     browseName: "Scale3"
+    // });
+    // //Mix1
+    // var Mixer1 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.Mixer1",
+    //     browseName: "Mixer1"
+    // });
+    // //packing stations
+    // var PK1 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.PK1",
+    //     browseName: "PK1"
+    // });
+    // var PK2 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.PK2",
+    //     browseName: "PK2"
+    // });
+    //
+    // //Sections
+    // var Section1 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.Section1",
+    //     browseName: "Section1"
+    // });
+    // var Section2 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.Section2",
+    //     browseName: "Section2"
+    // });
+    // var Section3 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.Section3",
+    //     browseName: "Section3"
+    // });
+    // var Section4 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.Section4",
+    //     browseName: "Section4"
+    // });
+    //
+    // //Lines
+    // var INT1 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.INT1",
+    //     browseName: "INT1"
+    // });
+    // var INT2 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.INT2",
+    //     browseName: "INT2"
+    // });
+    // var MIX1 = addressSpace.addFolder(PLC1, {
+    //     nodeId: "ns=1;s=PLC1.MIX1",
+    //     browseName: "MIX1"
+    // });
 
     /**
      * variation 0:
@@ -660,157 +805,157 @@ server.on("post_initialize", function () {
      * Add a variable in folder using a raw Variant.
      * Use this variation when the variable has to be read or written by the OPCUA clients
      */
-    var variable0 = addressSpace.addVariable({
-        organizedBy: PLC1,
-        browseName: "FanSpeed",
-        nodeId: "ns=1;s=FanSpeed",
-        dataType: "Double",
-        value: new Variant({dataType: DataType.Double, value: 1000.0})
-    });
-
-    setInterval(function () {
-        var fluctuation = Math.random() * 100 - 50;
-        variable0.setValueFromSource(new Variant({dataType: DataType.Double, value: 1000.0 + fluctuation}));
-    }, 10);
-
-
-    /**
-     * variation 1:
-     * ------------
-     *
-     * Add a variable in folder using a single get function which returns the up to date variable value in Variant.
-     * The server will set the timestamps automatically for us.
-     * Use this variation when the variable value is controlled by the getter function
-     * Avoid using this variation if the variable has to be made writable, as the server will call the getter
-     * function prior to returning its value upon client read requests.
-     */
-    addressSpace.addVariable({
-        organizedBy: PLC1,
-        browseName: "PumpSpeed",
-        nodeId: "ns=1;s=PumpSpeed",
-        dataType: "Double",
-        value: {
-            /**
-             * returns the  current value as a Variant
-             * @method get
-             * @return {Variant}
-             */
-            get: function () {
-                var pump_speed = 200 + 100 * Math.sin(Date.now() / 10000);
-                return new Variant({dataType: DataType.Double, value: pump_speed});
-            }
-        }
-    });
-
-    addressSpace.addVariable({
-        organizedBy: PLC1,
-        browseName: "SomeDate",
-        nodeId: "ns=1;s=SomeDate",
-        dataType: "DateTime",
-        value: {
-            get: function () {
-                return new Variant({dataType: DataType.DateTime, value: new Date(Date.UTC(2016, 9, 13, 8, 40, 0))});
-            }
-        }
-    });
-
-
-    /**
-     * variation 2:
-     * ------------
-     *
-     * Add a variable in folder. This variable gets its value and source timestamps from the provided function.
-     * The value and source timestamps are held in a external object.
-     * The value and source timestamps are updated on a regular basis using a timer function.
-     */
-    var external_value_with_sourceTimestamp = new opcua.DataValue({
-        value: new Variant({dataType: DataType.Double, value: 10.0}),
-        sourceTimestamp: null,
-        sourcePicoseconds: 0
-    });
-    setInterval(function () {
-        external_value_with_sourceTimestamp.value.value = Math.random();
-        external_value_with_sourceTimestamp.sourceTimestamp = new Date();
-    }, 1000);
-
-    addressSpace.addVariable({
-        organizedBy: PLC1,
-        browseName: "Pressure",
-        nodeId: "ns=1;s=Pressure",
-        dataType: "Double",
-        value: {
-            timestamped_get: function () {
-                return external_value_with_sourceTimestamp;
-            }
-        }
-    });
-
-
-    /**
-     * variation 3:
-     * ------------
-     *
-     * Add a variable in a folder. This variable gets its value  and source timestamps from the provided
-     * asynchronous function.
-     * The asynchronous function is called only when needed by the opcua Server read services and monitored item services
-     *
-     */
-
-    addressSpace.addVariable({
-        organizedBy: PLC1,
-        browseName: "Temperature",
-        nodeId: "ns=1;s=Temperature",
-        dataType: "Double",
-
-        value: {
-            refreshFunc: function (callback) {
-
-                var temperature = 20 + 10 * Math.sin(Date.now() / 10000);
-                var value = new Variant({dataType: DataType.Double, value: temperature});
-                var sourceTimestamp = new Date();
-
-                // simulate a asynchronous behaviour
-                setTimeout(function () {
-                    callback(null, new DataValue({value: value, sourceTimestamp: sourceTimestamp}));
-                }, 100);
-            }
-        }
-    });
-
-    // UAAnalogItem
-    // add a UAAnalogItem
-    var node = addressSpace.addAnalogDataItem({
-
-        organizedBy: PLC1,
-
-        nodeId: "ns=1;s=TemperatureAnalogItem",
-        browseName: "TemperatureAnalogItem",
-        definition: "(tempA -25) + tempB",
-        valuePrecision: 0.5,
-        engineeringUnitsRange: {low: 100, high: 200},
-        instrumentRange: {low: -100, high: +200},
-        engineeringUnits: opcua.standardUnits.degree_celsius,
-        dataType: "Double",
-        value: {
-            get: function () {
-                return new Variant({dataType: DataType.Double, value: Math.random() + 19.0});
-            }
-        }
-    });
-
-
-    //------------------------------------------------------------------------------
-    // Add a view
-    //------------------------------------------------------------------------------
-    var view = addressSpace.addView({
-        organizedBy: rootFolder.views,
-        browseName: "MyView"
-    });
-
-    view.addReference({
-        referenceType: "Organizes",
-        nodeId: node.nodeId
-    });
+    // var variable0 = addressSpace.addVariable({
+    //     organizedBy: PLC1,
+    //     browseName: "FanSpeed",
+    //     nodeId: "ns=1;s=FanSpeed",
+    //     dataType: "Double",
+    //     value: new Variant({dataType: DataType.Double, value: 1000.0})
+    // });
+    //
+    // setInterval(function () {
+    //     var fluctuation = Math.random() * 100 - 50;
+    //     variable0.setValueFromSource(new Variant({dataType: DataType.Double, value: 1000.0 + fluctuation}));
+    // }, 10);
+    //
+    //
+    // /**
+    //  * variation 1:
+    //  * ------------
+    //  *
+    //  * Add a variable in folder using a single get function which returns the up to date variable value in Variant.
+    //  * The server will set the timestamps automatically for us.
+    //  * Use this variation when the variable value is controlled by the getter function
+    //  * Avoid using this variation if the variable has to be made writable, as the server will call the getter
+    //  * function prior to returning its value upon client read requests.
+    //  */
+    // addressSpace.addVariable({
+    //     organizedBy: PLC1,
+    //     browseName: "PumpSpeed",
+    //     nodeId: "ns=1;s=PumpSpeed",
+    //     dataType: "Double",
+    //     value: {
+    //         /**
+    //          * returns the  current value as a Variant
+    //          * @method get
+    //          * @return {Variant}
+    //          */
+    //         get: function () {
+    //             var pump_speed = 200 + 100 * Math.sin(Date.now() / 10000);
+    //             return new Variant({dataType: DataType.Double, value: pump_speed});
+    //         }
+    //     }
+    // });
+    //
+    // addressSpace.addVariable({
+    //     organizedBy: PLC1,
+    //     browseName: "SomeDate",
+    //     nodeId: "ns=1;s=SomeDate",
+    //     dataType: "DateTime",
+    //     value: {
+    //         get: function () {
+    //             return new Variant({dataType: DataType.DateTime, value: new Date(Date.UTC(2016, 9, 13, 8, 40, 0))});
+    //         }
+    //     }
+    // });
+    //
+    //
+    // /**
+    //  * variation 2:
+    //  * ------------
+    //  *
+    //  * Add a variable in folder. This variable gets its value and source timestamps from the provided function.
+    //  * The value and source timestamps are held in a external object.
+    //  * The value and source timestamps are updated on a regular basis using a timer function.
+    //  */
+    // var external_value_with_sourceTimestamp = new opcua.DataValue({
+    //     value: new Variant({dataType: DataType.Double, value: 10.0}),
+    //     sourceTimestamp: null,
+    //     sourcePicoseconds: 0
+    // });
+    // setInterval(function () {
+    //     external_value_with_sourceTimestamp.value.value = Math.random();
+    //     external_value_with_sourceTimestamp.sourceTimestamp = new Date();
+    // }, 1000);
+    //
+    // addressSpace.addVariable({
+    //     organizedBy: PLC1,
+    //     browseName: "Pressure",
+    //     nodeId: "ns=1;s=Pressure",
+    //     dataType: "Double",
+    //     value: {
+    //         timestamped_get: function () {
+    //             return external_value_with_sourceTimestamp;
+    //         }
+    //     }
+    // });
+    //
+    //
+    // /**
+    //  * variation 3:
+    //  * ------------
+    //  *
+    //  * Add a variable in a folder. This variable gets its value  and source timestamps from the provided
+    //  * asynchronous function.
+    //  * The asynchronous function is called only when needed by the opcua Server read services and monitored item services
+    //  *
+    //  */
+    //
+    // addressSpace.addVariable({
+    //     organizedBy: PLC1,
+    //     browseName: "Temperature",
+    //     nodeId: "ns=1;s=Temperature",
+    //     dataType: "Double",
+    //
+    //     value: {
+    //         refreshFunc: function (callback) {
+    //
+    //             var temperature = 20 + 10 * Math.sin(Date.now() / 10000);
+    //             var value = new Variant({dataType: DataType.Double, value: temperature});
+    //             var sourceTimestamp = new Date();
+    //
+    //             // simulate a asynchronous behaviour
+    //             setTimeout(function () {
+    //                 callback(null, new DataValue({value: value, sourceTimestamp: sourceTimestamp}));
+    //             }, 100);
+    //         }
+    //     }
+    // });
+    //
+    // // UAAnalogItem
+    // // add a UAAnalogItem
+    // var node = addressSpace.addAnalogDataItem({
+    //
+    //     organizedBy: PLC1,
+    //
+    //     nodeId: "ns=1;s=TemperatureAnalogItem",
+    //     browseName: "TemperatureAnalogItem",
+    //     definition: "(tempA -25) + tempB",
+    //     valuePrecision: 0.5,
+    //     engineeringUnitsRange: {low: 100, high: 200},
+    //     instrumentRange: {low: -100, high: +200},
+    //     engineeringUnits: opcua.standardUnits.degree_celsius,
+    //     dataType: "Double",
+    //     value: {
+    //         get: function () {
+    //             return new Variant({dataType: DataType.Double, value: Math.random() + 19.0});
+    //         }
+    //     }
+    // });
+    //
+    //
+    // //------------------------------------------------------------------------------
+    // // Add a view
+    // //------------------------------------------------------------------------------
+    // var view = addressSpace.addView({
+    //     organizedBy: rootFolder.views,
+    //     browseName: "MyView"
+    // });
+    //
+    // view.addReference({
+    //     referenceType: "Organizes",
+    //     nodeId: node.nodeId
+    // });
 });
 
 
@@ -967,6 +1112,7 @@ server.on("request", function (request, channel) {
 
 process.on('SIGINT', function () {
     // only work on linux apparently
+    wstream.end();
     console.error(" Received server interruption from user ".red.bold);
     console.error(" shutting down ...".red.bold);
     server.shutdown(1000, function () {
