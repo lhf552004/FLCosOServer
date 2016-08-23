@@ -125,8 +125,13 @@ var fs = require('fs');
 var logfile = 'OPCUAlog.txt';
 var wstream = fs.createWriteStream(logfile);
 
-function log(data) {
-    wstream.write(data + '\n');
+function log(logType, data) {
+    var time = new Date().toLocaleString();
+    //     new Date().toISOString().
+    // replace(/T/, ' ').      // replace T with a space
+    // replace(/\..+/, '');
+    wstream.write(time
+        + ': [' + logType +']: ' + data + '\n');
     console.log(data);
 }
 function getType(typeFromCsv) {
@@ -135,24 +140,24 @@ function getType(typeFromCsv) {
         DataType: 0,
         value: null
     };
-    if (typeFromCsv.indexOf('INT') > 0) {
+    if (typeFromCsv.indexOf('INT') >= 0) {
         theType.typeName = 'Int16';
         theType.DataType = DataType.Int16;
         theType.value = 0;
-    } else if (typeFromCsv.indexOf('BOOL') > 0) {
+    } else if (typeFromCsv.indexOf('BOOL') >= 0 || typeFromCsv.indexOf('Boolean') >= 0 ) {
         theType.typeName = 'Boolean';
         theType.DataType = DataType.Boolean;
         theType.value = false;
     }
-    else if (typeFromCsv.indexOf('WORD') > 0) {
+    else if (typeFromCsv.toUpperCase().indexOf('WORD') >= 0) {
         theType.typeName = 'Int64';
         theType.DataType = DataType.Int64;
         theType.value = 0;
-    } else if (typeFromCsv.indexOf('BYTE') > 0) {
+    } else if (typeFromCsv.indexOf('BYTE') >= 0) {
         theType.typeName = 'Byte';
         theType.DataType = DataType.Byte;
         theType.value = 0;
-    } else if (typeFromCsv.indexOf('REAL') > 0) {
+    } else if (typeFromCsv.indexOf('REAL') >= 0) {
         theType.typeName = 'Double';
         theType.DataType = DataType.Double;
         theType.value = 0.0;
@@ -163,6 +168,259 @@ function getType(typeFromCsv) {
     }
     return theType;
 
+}
+
+function importOPCCompatiableStructure(addressSpace, parentNode) {
+    var elements=[];
+    var nodeId ='';
+    var infos=[];
+    var pathInfo = '';
+    var type = '';
+    var paths = [];
+    var oPCUAType = {};
+    fs.readFile('output.csv', 'utf8', function (err, data) {
+        if (err) {
+            console.error('E', err);
+        }
+        else {
+            elements = data.split('\n');
+            nodeId= 'ns=1;s=PLC1';
+            elements.forEach(function (element) {
+                infos= [];
+                log('D','element: ' + element);
+
+                if (element) {
+                    //first info is path; second info is type
+                    infos = element.split(',');
+                }
+
+                if (infos.length >= 2) {
+
+                    pathInfo = infos[0];
+                    type = infos[1];
+                    paths = pathInfo.split('.');
+                    oPCUAType = getType(type);
+                    paths.forEach(function (path, i) {
+                        parentNode = addressSpace.findNode(nodeId);
+                        if(!parentNode){
+                            log('W','parentNode not found! ' + nodeId);
+                        }
+                        nodeId += '.' + path;
+                        if (addressSpace.findNode(nodeId)) {
+                            log('D','find node: ' + nodeId);
+                        } else {
+                            log('D','not find node: ' + nodeId);
+                            //create new node
+                            if (i === paths.length - 1) {
+                                //it is variable
+                                if(parentNode) {
+                                    log('D','create variable: ' + nodeId + ', parentNode: ' + parentNode.browseName);
+                                    log('D','variable typename: ' + oPCUAType.typeName);
+                                    addressSpace.addVariable({
+                                        organizedBy: parentNode,
+                                        browseName: path,
+                                        nodeId: nodeId,
+                                        dataType: oPCUAType.typeName,
+                                        value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
+                                    });
+                                }else {
+                                    log('E','parentNode is empty ');
+                                }
+                                nodeId = 'ns=1;s=PLC1';
+                            }
+                            else {
+                                log('D','try to create folder: ' + nodeId + ' ... i: ' + i);
+                                try {
+                                    if(parentNode){
+                                        log('D','create folder: ' + nodeId +  ' ,parentNode: ' + parentNode.browseName);
+                                        addressSpace.addFolder(parentNode, {
+                                            nodeId: nodeId,
+                                            browseName: path
+                                        });
+                                    }
+                                    else {
+                                        log('E','parentNode is empty ');
+                                    }
+                                }catch (ex){
+                                    log('E',ex);
+                                }
+
+                            }
+                        }
+                    });
+                }
+            });
+            var referenceType = addressSpace.addReferenceType({
+                isAbstract: false,
+                browseName: 'Element',
+                inverseName: 'Element'
+            });
+            console.log('refereneceType id: ' + referenceType.nodeId);
+            var sourceNode = addressSpace.findNode('ns=1;s=PLC1.G054M.A_1006');
+            var targetNode = addressSpace.findNode('ns=1;s=PLC1.G053M.A_1007.A_1007_KFC01');
+            if(referenceType && sourceNode && targetNode){
+                var reference ={
+                    referenceType: 'HasChild',
+                    isForward : true,
+                    nodeId :targetNode.nodeId
+                };
+                console.log('try to create reference');
+                sourceNode.addReference(reference);
+            }
+        }
+
+    });
+}
+
+function importOPCUAStructure(addressSpace) {
+    var prefix = 'ns=1;s=PLC1';
+    var lines=[];
+    var nodeId ='';
+    var infos=[];
+    var pathInfo = '';
+    var type = '';
+    var segments = [];
+    var oPCUAType = {};
+    var elements = [];
+    var elementName ='';
+    var index = -1;
+    var elementNodeId = '';
+    var parentNode = null;
+    var elementNode = null;
+    var categoryNode = null;
+    var unitName = '';
+    var unitNodeId = '';
+    var unitNode = null;
+    var reference = {};
+    fs.readFile('PLC.csv', 'utf8', function (err, data) {
+        if (err) {
+            log('E', err);
+        }
+        else {
+            lines = data.split('\n');
+            nodeId= 'ns=1;s=PLC1';
+            //remove header
+            lines.splice(0, 1);
+            log('D','lines length: ' + lines.length);
+            lines.forEach(function (line) {
+                infos= [];
+                log('D','line: ' + line);
+
+                if (line) {
+                    //first info is path; second info is type
+                    infos = line.split(',');
+                }
+
+                if (infos.length >= 2) {
+
+                    pathInfo = infos[0];
+                    type = infos[2];
+                    //remove double quotes
+                    pathInfo = pathInfo.substring(1, pathInfo.length-1);
+                    log('D','pathInfo: ' + pathInfo);
+                    segments = pathInfo.split('.');
+                    oPCUAType = getType(type);
+                    if(segments[0] === 'Element'){
+                        elementName = segments[2];
+                        index = elementName.lastIndexOf('-');
+                        elementNodeId = prefix + '.Element.' + segments[1] + '.' +segments[2];
+                        if(index>-1){
+                            unitName = elementName.substring(0,index);
+                            log('D','unit in element: ' + unitName);
+                            elements[unitName] = [];
+                            elements[unitName].push(elementNodeId);
+                        }
+
+                        parentNode = addressSpace.findNode(prefix + '.Element.' + segments[1]);
+                        elementNode = addressSpace.findNode(elementNodeId);
+                        if(!elementNode){
+                            elementNode = addressSpace.addFolder(parentNode, {
+                                nodeId: elementNodeId,
+                                browseName: segments[2]
+                            });
+                        }
+
+                        if(elementNode){
+                            elementNodeId +='.' + segments[3];
+                            categoryNode = addressSpace.findNode(elementNodeId);
+                            if(!categoryNode){
+                                categoryNode = addressSpace.addFolder(elementNode, {
+                                    nodeId: elementNodeId,
+                                    browseName: segments[3]
+                                });
+                            }
+                            log('D', 'variable name: ' + segments[4]);
+                            addressSpace.addVariable({
+                                organizedBy: categoryNode,
+                                browseName: segments[4],
+                                nodeId: elementNodeId + '.' + segments[4],
+                                dataType: oPCUAType.typeName,
+                                value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
+                            });
+                        }
+
+                    }else if(segments[0] === 'Unit'){
+                        unitNodeId = prefix + '.Unit.' + segments[1] + '.' + segments[2];
+                        unitName = segments[2];
+                        unitNode =addressSpace.findNode(unitNodeId);
+                        parentNode =addressSpace.findNode(prefix + '.Unit.' + segments[1]);
+                        if(!unitNode){
+                            log('D', 'Create unit node: ' + unitNodeId);
+                            unitNode = addressSpace.addFolder(parentNode, {
+                                nodeId: unitNodeId,
+                                browseName: segments[2]
+                            });
+                        }
+
+                        unitNodeId +='.' + segments[3];
+                        categoryNode = addressSpace.findNode(unitNodeId);
+                        if(!categoryNode){
+                            categoryNode = addressSpace.addFolder(unitNode, {
+                                nodeId: unitNodeId,
+                                browseName: segments[3]
+                            });
+                        }
+                        if(segments[3] === 'Elements'){
+                            elements[unitName].forEach(function (elementNodeId) {
+                                elementNode = addressSpace.findNode(elementNodeId);
+                                log('D', 'Be referenced element' + elementNodeId);
+                                var referenceNode = addressSpace.findNode(unitNodeId + '.Elements.' + elementNode.browseName);
+                                if(referenceNode){
+                                    log('D', 'reference at source node is existed: ' + referenceNode.nodeId);
+                                }else {
+                                    try{
+                                        reference ={
+                                            referenceType: 'HasChild',
+                                            isForward : true,
+                                            nodeId :elementNodeId
+                                        };
+                                        categoryNode.addReference(reference);
+                                    }
+                                   catch (ex){
+                                       log('E', ex);
+                                   }
+
+
+                                }
+
+                            });
+                        }else {
+                            addressSpace.addVariable({
+                                organizedBy: categoryNode,
+                                browseName: segments[4],
+                                nodeId: unitNodeId + '.' + segments[4],
+                                dataType: oPCUAType.typeName,
+                                value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
+                            });
+                        }
+
+                    }
+
+                }
+            });
+        }
+
+    });
 }
 server.on("post_initialize", function () {
 
@@ -181,165 +439,75 @@ server.on("post_initialize", function () {
         nodeId: "ns=1;s=PLC1",
         browseName: "PLC1"
     });
-    var elements=[];
-    var nodeId ='';
-    var infos=[];
-    var pathInfo = '';
-    var type = '';
-    var paths = [];
-    var parentNode = PLC1;
-    var oPCUAType = {};
-    // var rstream = fs.createReadStream('output.csv',{encoding: 'utf8'});
-    // rstream
-    //     .on('data', function (chunk) {
-    //         // console.log('chunk');
-    //         // console.dir(chunk);
-    //         elements = chunk.split('\n');
-    //         nodeId= 'ns=1;s=PLC1';
-    //         elements.forEach(function (element) {
-    //             infos= [];
-    //             log('element: ' + element);
-    //
-    //             if (element) {
-    //                 //first info is path; second info is type
-    //                 infos = element.split(',');
-    //             }
-    //
-    //             if (infos.length >= 2) {
-    //
-    //                 pathInfo = infos[0];
-    //                 type = infos[1];
-    //                 paths = pathInfo.split('.');
-    //                 oPCUAType = getType(type);
-    //                 paths.forEach(function (path, i) {
-    //                     parentNode = addressSpace.findNode(nodeId);
-    //                     if(!parentNode){
-    //                         log('parentNode not found! ' + nodeId);
-    //                     }
-    //                     nodeId += '.' + path;
-    //                     if (addressSpace.findNode(nodeId)) {
-    //                         log('find node: ' + nodeId);
-    //                     } else {
-    //                         log('not find node: ' + nodeId);
-    //                         //create new node
-    //                         if (i === paths.length - 1) {
-    //                             //it is variable
-    //                             if(parentNode) {
-    //                                 log('create variable: ' + nodeId + ', parentNode: ' + parentNode.browseName);
-    //                                 addressSpace.addVariable({
-    //                                     organizedBy: parentNode,
-    //                                     browseName: path,
-    //                                     nodeId: nodeId,
-    //                                     dataType: oPCUAType.typeName,
-    //                                     value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
-    //                                 });
-    //                             }else {
-    //                                 log('parentNode is empty ');
-    //                             }
-    //                             nodeId = 'ns=1;s=PLC1';
-    //                         }
-    //                         else {
-    //                             log('try to create folder: ' + nodeId + ' ... i: ' + i);
-    //                             try {
-    //                                 if(parentNode){
-    //                                     log('create folder: ' + nodeId +  ' ,parentNode: ' + parentNode.browseName);
-    //                                     addressSpace.addFolder(parentNode, {
-    //                                         nodeId: nodeId,
-    //                                         browseName: path
-    //                                     });
-    //                                 }
-    //                                 else {
-    //                                     log('parentNode is empty ');
-    //                                 }
-    //                             }catch (ex){
-    //                                 log(ex);
-    //                             }
-    //
-    //                         }
-    //                     }
-    //                 });
-    //             }
-    //         })
-    //
-    //     })
-    //     .on('end', function () {  // done
-    //         log('the end');
-    //     });
-    fs.readFile('output.csv', 'utf8', function (err, data) {
-        if (err) {
-            console.error(err);
-        }
-        else {
-            elements = data.split('\n');
-            nodeId= 'ns=1;s=PLC1';
-            elements.forEach(function (element) {
-                infos= [];
-                log('element: ' + element);
-
-                if (element) {
-                    //first info is path; second info is type
-                    infos = element.split(',');
-                }
-
-                if (infos.length >= 2) {
-
-                    pathInfo = infos[0];
-                    type = infos[1];
-                    paths = pathInfo.split('.');
-                    oPCUAType = getType(type);
-                    paths.forEach(function (path, i) {
-                        parentNode = addressSpace.findNode(nodeId);
-                        if(!parentNode){
-                            log('parentNode not found! ' + nodeId);
-                        }
-                        nodeId += '.' + path;
-                        if (addressSpace.findNode(nodeId)) {
-                            log('find node: ' + nodeId);
-                        } else {
-                            log('not find node: ' + nodeId);
-                            //create new node
-                            if (i === paths.length - 1) {
-                                //it is variable
-                                if(parentNode) {
-                                    log('create variable: ' + nodeId + ', parentNode: ' + parentNode.browseName);
-                                    addressSpace.addVariable({
-                                        organizedBy: parentNode,
-                                        browseName: path,
-                                        nodeId: nodeId,
-                                        dataType: oPCUAType.typeName,
-                                        value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
-                                    });
-                                }else {
-                                    log('parentNode is empty ');
-                                }
-                                nodeId = 'ns=1;s=PLC1';
-                            }
-                            else {
-                                log('try to create folder: ' + nodeId + ' ... i: ' + i);
-                                try {
-                                    if(parentNode){
-                                        log('create folder: ' + nodeId +  ' ,parentNode: ' + parentNode.browseName);
-                                        addressSpace.addFolder(parentNode, {
-                                            nodeId: nodeId,
-                                            browseName: path
-                                        });
-                                    }
-                                    else {
-                                        log('parentNode is empty ');
-                                    }
-                                }catch (ex){
-                                    log(ex);
-                                }
-
-                            }
-                        }
-                    });
-                }
-            })
-
-        }
-
+    //System------------------------------------
+    var System = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.System",
+        browseName: "System"
     });
+    var HandShake = addressSpace.addFolder(System, {
+        nodeId: "ns=1;s=PLC1.System.HandShake",
+        browseName: "HandShake"
+    });
+    var HighestCycleTime = addressSpace.addFolder(System, {
+        nodeId: "ns=1;s=PLC1.System.HighestCycleTime",
+        browseName: "HighestCycleTime"
+    });
+    var LiveTimePreset = addressSpace.addFolder(System, {
+        nodeId: "ns=1;s=PLC1.System.LiveTimePreset",
+        browseName: "LiveTimePreset"
+    });
+    var ProjectCycleTime = addressSpace.addFolder(System, {
+        nodeId: "ns=1;s=PLC1.System.ProjectCycleTime",
+        browseName: "ProjectCycleTime"
+    });
+    //Element----------------------------------
+    var Element = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Element",
+        browseName: "Element"
+    });
+    var BeltMonitor = addressSpace.addFolder(Element, {
+        nodeId: "ns=1;s=PLC1.Element.BeltMonitor",
+        browseName: "BeltMonitor"
+    });
+    var FilterControl = addressSpace.addFolder(Element, {
+        nodeId: "ns=1;s=PLC1.Element.FilterControl",
+        browseName: "FilterControl"
+    });
+    var HighLevel = addressSpace.addFolder(Element, {
+        nodeId: "ns=1;s=PLC1.Element.HighLevel",
+        browseName: "HighLevel"
+    });
+    var SimpleMotor = addressSpace.addFolder(Element, {
+        nodeId: "ns=1;s=PLC1.Element.SimpleMotor",
+        browseName: "SimpleMotor"
+    });
+    var SpeedMonitor = addressSpace.addFolder(Element, {
+        nodeId: "ns=1;s=PLC1.Element.SpeedMonitor",
+        browseName: "SpeedMonitor"
+    });
+    var ValveOpenClose = addressSpace.addFolder(Element, {
+        nodeId: "ns=1;s=PLC1.Element.ValveOpenClose",
+        browseName: "ValveOpenClose"
+    });
+    //Unit---------------------------------------
+    var Unit = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Unit",
+        browseName: "Unit"
+    });
+    var LBCA = addressSpace.addFolder(Unit, {
+        nodeId: "ns=1;s=PLC1.Unit.LBCA",
+        browseName: "LBCA"
+    });
+    var LBEA = addressSpace.addFolder(Unit, {
+        nodeId: "ns=1;s=PLC1.Unit.LBEA",
+        browseName: "LBEA"
+    });
+    var MVRW = addressSpace.addFolder(Unit, {
+        nodeId: "ns=1;s=PLC1.Unit.MVRW",
+        browseName: "MVRW"
+    });
+    importOPCUAStructure(addressSpace);
+    //importOPCCompatiableStructure(addressSpace, PLC1);
 
     // //console.log('rootFolder.objects: '+rootFolder.objects);
     // //console.log('PLC1: '+PLC1);
@@ -798,6 +966,8 @@ server.on("post_initialize", function () {
     //     browseName: "MIX1"
     // });
 
+
+
     /**
      * variation 0:
      * ------------
@@ -805,13 +975,7 @@ server.on("post_initialize", function () {
      * Add a variable in folder using a raw Variant.
      * Use this variation when the variable has to be read or written by the OPCUA clients
      */
-    // var variable0 = addressSpace.addVariable({
-    //     organizedBy: PLC1,
-    //     browseName: "FanSpeed",
-    //     nodeId: "ns=1;s=FanSpeed",
-    //     dataType: "Double",
-    //     value: new Variant({dataType: DataType.Double, value: 1000.0})
-    // });
+
     //
     // setInterval(function () {
     //     var fluctuation = Math.random() * 100 - 50;
