@@ -271,7 +271,15 @@ function importOPCCompatiableStructure(addressSpace, parentNode) {
 
     });
 }
-
+function isInArray(input, elementNodeId) {
+    var i = 0, len = input.length;
+    for (; i < len; i++) {
+        if (input[i] == elementNodeId) {
+            return true;
+        }
+    }
+    return false;
+}
 function importOPCUAStructure(addressSpace) {
     var prefix = 'ns=1;s=PLC1';
     var lines=[];
@@ -292,6 +300,7 @@ function importOPCUAStructure(addressSpace) {
     var unitNodeId = '';
     var unitNode = null;
     var reference = {};
+    var unitToCreateElements ='';
     fs.readFile('PLC.csv', 'utf8', function (err, data) {
         if (err) {
             log('E', err);
@@ -303,6 +312,7 @@ function importOPCUAStructure(addressSpace) {
             lines.splice(0, 1);
             log('D','lines length: ' + lines.length);
             lines.forEach(function (line) {
+
                 infos= [];
                 log('D','line: ' + line);
 
@@ -327,8 +337,15 @@ function importOPCUAStructure(addressSpace) {
                         if(index>-1){
                             unitName = elementName.substring(0,index);
                             log('D','unit in element: ' + unitName);
-                            elements[unitName] = [];
-                            elements[unitName].push(elementNodeId);
+                            elements[unitName] = elements[unitName] || [];
+                            if(!isInArray(elements[unitName], elementNodeId)){
+                                elements[unitName].push(elementNodeId);
+                            }
+                            log('D','Element array for unit: ' + unitName);
+                            elements[unitName].forEach(function (element) {
+                                log('D', 'Element nodeid: ' + element );
+                            });
+                            log('D','--------------------------------');
                         }
 
                         parentNode = addressSpace.findNode(prefix + '.Element.' + segments[1]);
@@ -381,29 +398,33 @@ function importOPCUAStructure(addressSpace) {
                             });
                         }
                         if(segments[3] === 'Elements'){
-                            elements[unitName].forEach(function (elementNodeId) {
-                                elementNode = addressSpace.findNode(elementNodeId);
-                                log('D', 'Be referenced element' + elementNodeId);
-                                var referenceNode = addressSpace.findNode(unitNodeId + '.Elements.' + elementNode.browseName);
-                                if(referenceNode){
-                                    log('D', 'reference at source node is existed: ' + referenceNode.nodeId);
-                                }else {
-                                    try{
-                                        reference ={
-                                            referenceType: 'HasChild',
-                                            isForward : true,
-                                            nodeId :elementNodeId
-                                        };
-                                        categoryNode.addReference(reference);
+                            if(unitToCreateElements !== unitName){
+                                unitToCreateElements = unitName;
+                                elements[unitName].forEach(function (elementNodeId) {
+                                    elementNode = addressSpace.findNode(elementNodeId);
+                                    log('D', 'Be referenced element' + elementNodeId);
+                                    var referenceNode = addressSpace.findNode(unitNodeId + '.Elements.' + elementNode.browseName);
+                                    if(referenceNode){
+                                        log('D', 'reference at source node is existed: ' + referenceNode.nodeId);
+                                    }else {
+                                        try{
+                                            reference ={
+                                                referenceType: 'HasChild',
+                                                isForward : true,
+                                                nodeId :elementNodeId
+                                            };
+                                            categoryNode.addReference(reference);
+                                        }
+                                        catch (ex){
+                                            log('E', ex);
+                                        }
+
+
                                     }
-                                   catch (ex){
-                                       log('E', ex);
-                                   }
 
+                                });
+                            }
 
-                                }
-
-                            });
                         }else {
                             addressSpace.addVariable({
                                 organizedBy: categoryNode,
