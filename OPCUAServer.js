@@ -465,21 +465,33 @@ server.on("post_initialize", function () {
         nodeId: "ns=1;s=PLC1.System",
         browseName: "System"
     });
-    var HandShake = addressSpace.addFolder(System, {
+    var HandShake = addressSpace.addVariable({
+        organizedBy: System,
+        browseName: 'HandShake',
         nodeId: "ns=1;s=PLC1.System.HandShake",
-        browseName: "HandShake"
+        dataType: 'Boolean',
+        value: new Variant({dataType: DataType.Boolean, value: false})
     });
-    var HighestCycleTime = addressSpace.addFolder(System, {
+    var HighestCycleTime = addressSpace.addVariable({
+        organizedBy: System,
+        browseName: 'HighestCycleTime',
         nodeId: "ns=1;s=PLC1.System.HighestCycleTime",
-        browseName: "HighestCycleTime"
+        dataType: 'Int64',
+        value: new Variant({dataType: DataType.Int64, value: 0})
     });
-    var LiveTimePreset = addressSpace.addFolder(System, {
+    var LiveTimePreset = addressSpace.addVariable({
+        organizedBy: System,
+        browseName: 'LiveTimePreset',
         nodeId: "ns=1;s=PLC1.System.LiveTimePreset",
-        browseName: "LiveTimePreset"
+        dataType: 'Int64',
+        value: new Variant({dataType: DataType.Int64, value: 0})
     });
-    var ProjectCycleTime = addressSpace.addFolder(System, {
+    var ProjectCycleTime = addressSpace.addVariable({
+        organizedBy: System,
+        browseName: 'ProjectCycleTime',
         nodeId: "ns=1;s=PLC1.System.ProjectCycleTime",
-        browseName: "ProjectCycleTime"
+        dataType: 'Int64',
+        value: new Variant({dataType: DataType.Int64, value: 0})
     });
     //Element----------------------------------
     var Element = addressSpace.addFolder(PLC1, {

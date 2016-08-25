@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/lhf552004/FLCos#readme",
   "dependencies": {
+    "async": "^2.0.1",
+    "better-assert": "^1.0.2",
     "node-opcua": "0.0.56",
     "requirish": "^0.3.0",
     "underscore": "^1.8.3",
