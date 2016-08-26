@@ -343,13 +343,15 @@ function monitor_a_variable_node_value(monitored_node, callback) {
     });
 
 }
-
+var cmdManualNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.Commands.CmdManual';
+var valInput1NodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.HardwareIO.ValInput1';
+var staFaultNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaFault';
+var staStartingNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStarting';
+var staStartedNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStarted';
+var staStoppingNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStopping';
+var staStoppedNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStopped';
 function monitor_node_callback(monitored_node, dataValueOfMonitor) {
-    var staFaultNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaFault';
-    var staStartingNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStarting';
-    var staStartedNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStarted';
-    var staStoppingNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStopping';
-    var staStoppedNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStopped';
+
     var data ={
         type: DataType.Boolean,
         value: true
@@ -367,9 +369,14 @@ function monitor_node_callback(monitored_node, dataValueOfMonitor) {
                                 data.value = false;
                                 setItemValue(staStoppingNodeId,data,function () {});
                                 setItemValue(staStoppedNodeId,data,function () {});
-                                setItemValue(staStartingNodeId,data,function () {});
-                                data.value = true;
-                                setItemValue(staStartedNodeId,data,function () {});
+                                setItemValue(staStartingNodeId,data,function () {
+                                    setTimeout(function () {
+                                        data.value = true;
+                                        setItemValue(staStartedNodeId,data,function () {});
+                                    },3000);
+
+                                });
+
 
                             },2000);
                         });
@@ -489,20 +496,6 @@ async.series([
 
         });
     },
-    function get_monitored_item(callback) {
-
-        the_session.getMonitoredItems(the_subscription.subscriptionId, function (err, results) {
-            if (!err) {
-                console.log("MonitoredItems clientHandles", results.clientHandles);
-                console.log("MonitoredItems serverHandles", results.serverHandles);
-            } else {
-                console.log(" getMonitoredItems ERROR ".red, err.message.cyan);
-            }
-            callback();
-        });
-
-
-    },
     function MonitorAllNode(callback) {
         var prefix = 'ns=1;s=PLC1';
         var lines=[];
@@ -546,6 +539,21 @@ async.series([
             }
 
         });
+        var data ={
+            type: DataType.Boolean,
+            value: false
+        };
+        setItemValue(cmdManualNodeId,data,function () {});
+        setItemValue(staFaultNodeId,data,function () {});
+        setItemValue(valInput1NodeId,data,function () {});
+        setItemValue(staStartingNodeId,data,function () {});
+        setItemValue(staStartedNodeId,data,function () {});
+        setItemValue(staStoppingNodeId,data,function () {});
+        data.value = true;
+        setItemValue(staStoppedNodeId,data,function () {});
+    },
+    function Initiliaze(callback) {
+        console.log('Last function.');
     }
 ], function (err) {
 

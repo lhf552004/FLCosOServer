@@ -274,7 +274,7 @@ function importOPCCompatiableStructure(addressSpace, parentNode) {
 function isInArray(input, elementNodeId) {
     var i = 0, len = input.length;
     for (; i < len; i++) {
-        if (input[i] == elementNodeId) {
+        if (input[i] === elementNodeId) {
             return true;
         }
     }
@@ -301,6 +301,10 @@ function importOPCUAStructure(addressSpace) {
     var unitNode = null;
     var reference = {};
     var unitToCreateElements ='';
+    var sectionNodeId ='';
+    var sectionNode = null;
+    var lineNodeId = '';
+    var lineNode = null;
     fs.readFile('PLC.csv', 'utf8', function (err, data) {
         if (err) {
             log('E', err);
@@ -425,7 +429,8 @@ function importOPCUAStructure(addressSpace) {
                                 });
                             }
 
-                        }else {
+                        }
+                        else {
                             addressSpace.addVariable({
                                 organizedBy: categoryNode,
                                 browseName: segments[4],
@@ -435,6 +440,72 @@ function importOPCUAStructure(addressSpace) {
                             });
                         }
 
+                    }else if(segments[0] === 'Section'){
+                        sectionNodeId = prefix + '.Section.' + segments[1];
+                        sectionNode =addressSpace.findNode(sectionNodeId);
+                        parentNode =addressSpace.findNode(prefix + '.Section');
+                        if(!sectionNode){
+                            log('D', 'Create section node: ' + sectionNodeId);
+                            sectionNode = addressSpace.addFolder(parentNode, {
+                                nodeId: sectionNodeId,
+                                browseName: segments[1]
+                            });
+                        }
+
+                        sectionNodeId +='.' + segments[2];
+                        categoryNode = addressSpace.findNode(sectionNodeId);
+                        if(!categoryNode){
+                            categoryNode = addressSpace.addFolder(sectionNode, {
+                                nodeId: sectionNodeId,
+                                browseName: segments[2]
+                            });
+                        }
+                        if(segments[2] === 'Units'){
+
+
+                        }
+                        else {
+                            addressSpace.addVariable({
+                                organizedBy: categoryNode,
+                                browseName: segments[3],
+                                nodeId: sectionNodeId + '.' + segments[3],
+                                dataType: oPCUAType.typeName,
+                                value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
+                            });
+                        }
+                    }else if(segments[0] === 'Line'){
+                        lineNodeId = prefix + '.Line.' + segments[1] + '.' + segments[2];
+                        lineNode =addressSpace.findNode(lineNodeId);
+                        parentNode =addressSpace.findNode(prefix + '.Line.' + segments[1]);
+                        if(!lineNode){
+                            log('D', 'Create line node: ' + lineNodeId);
+                            lineNode = addressSpace.addFolder(parentNode, {
+                                nodeId: lineNodeId,
+                                browseName: segments[2]
+                            });
+                        }
+
+                        lineNodeId +='.' + segments[3];
+                        categoryNode = addressSpace.findNode(lineNodeId);
+                        if(!categoryNode){
+                            categoryNode = addressSpace.addFolder(lineNode, {
+                                nodeId: lineNodeId,
+                                browseName: segments[3]
+                            });
+                        }
+                        if(segments[3] === 'Sections'){
+
+
+                        }
+                        else {
+                            addressSpace.addVariable({
+                                organizedBy: categoryNode,
+                                browseName: segments[4],
+                                nodeId: lineNodeId + '.' + segments[4],
+                                dataType: oPCUAType.typeName,
+                                value: new Variant({dataType: oPCUAType.DataType, value: oPCUAType.value})
+                            });
+                        }
                     }
 
                 }
@@ -538,6 +609,22 @@ server.on("post_initialize", function () {
     var MVRW = addressSpace.addFolder(Unit, {
         nodeId: "ns=1;s=PLC1.Unit.MVRW",
         browseName: "MVRW"
+    });
+    var Section = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Section",
+        browseName: "Section"
+    });
+    var Line = addressSpace.addFolder(PLC1, {
+        nodeId: "ns=1;s=PLC1.Line",
+        browseName: "Line"
+    });
+    var TRANS = addressSpace.addFolder(Line, {
+        nodeId: "ns=1;s=PLC1.Line.TRANS",
+        browseName: "TRANS"
+    });
+    var PRO = addressSpace.addFolder(Line, {
+        nodeId: "ns=1;s=PLC1.Line.PRO",
+        browseName: "PRO"
     });
     importOPCUAStructure(addressSpace);
     //importOPCCompatiableStructure(addressSpace, PLC1);
