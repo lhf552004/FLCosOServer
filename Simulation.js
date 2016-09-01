@@ -331,72 +331,155 @@ function monitor_a_variable_node_value(monitored_node, callback) {
     monitoredItem.on("changed", function (dataValue) {
         //log('D',monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.value);
         count++;
-        if(count>1){
+        if (count > 1) {
             callback(monitored_node, dataValue);
         }
 
 
     });
     monitoredItem.on("err", function (err_message) {
-        log('E', monitoredItem.itemToMonitor.nodeId.toString() + ' ' + err_message );
+        log('E', monitoredItem.itemToMonitor.nodeId.toString() + ' ' + err_message);
         callback();
     });
 
 }
-var cmdManualNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.Commands.CmdManual';
-var valInput1NodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.HardwareIO.ValInput1';
-var staFaultNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaFault';
-var staStartingNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStarting';
-var staStartedNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStarted';
-var staStoppingNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStopping';
-var staStoppedNodeId ='ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStopped';
+var cmdManualNodeId = 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.Commands.CmdManual';
+var valInput1NodeId = 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.HardwareIO.ValInput1';
+var staFaultNodeId = 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaFault';
+var staStartingNodeId = 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStarting';
+var staStartedNodeId = 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStarted';
+var staStoppingNodeId = 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStopping';
+var staStoppedNodeId = 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.States.StaStopped';
+
+var jobIdNodeId = 'ns=1;s=PLC1.Section.INT1S01.Parameter.JobId';
+var rcvBinNoNodeId = 'ns=1;s=PLC1.Section.INT1S01.Parameter.RcvBinNo';
+var sndBinNoNodeId = 'ns=1;s=PLC1.Section.INT1S01.Parameter.SndBinNo';
+var weightTotalNodeId = 'ns=1;s=PLC1.Section.INT1S01.Parameter.WeightTotal';
+
+var ints01StaFaultNodeId = 'ns=1;s=PLC1.Section.INT1S01.States.StaFault';
+var ints01StaStartedNodeId = 'ns=1;s=PLC1.Section.INT1S01.States.StaStarted';
+var ints01StaStartingNodeId = 'ns=1;s=PLC1.Section.INT1S01.States.StaStarting';
+var ints01StaStoppedNodeId = 'ns=1;s=PLC1.Section.INT1S01.States.StaStopped';
+var ints01StaStoppingNodeId = 'ns=1;s=PLC1.Section.INT1S01.States.StaStopping';
+
+var int1StaFaultNodeId = 'ns=1;s=PLC1.Line.TRANS.INT1.States.StaFault';
+var int1StaIdelingNodeId = 'ns=1;s=PLC1.Line.TRANS.INT1.States.StaIdeling';
+var int1StaStartedNodeId = 'ns=1;s=PLC1.Line.TRANS.INT1.States.StaStarted';
+var int1StaStartingNodeId = 'ns=1;s=PLC1.Line.TRANS.INT1.States.StaStarting';
+var int1StaStoppedNodeId = 'ns=1;s=PLC1.Line.TRANS.INT1.States.StaStopped';
+var int1StaStoppingNodeId = 'ns=1;s=PLC1.Line.TRANS.INT1.States.StaStopping';
+
 function monitor_node_callback(monitored_node, dataValueOfMonitor) {
 
-    var data ={
+    var data = {
         type: DataType.Boolean,
         value: true
     };
-    if(monitored_node === 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.HardwareIO.ValInput1'){
-        log('D','monitored_node: ' + monitored_node);
-        getItemsValue(staFaultNodeId,function (err,nodeIds, dataValue) {
-            if(!err){
+    if (monitored_node === 'ns=1;s=PLC1.Element.SimpleMotor.=A-0006-MXZ01.HardwareIO.ValInput1') {
+        log('D', 'monitored_node: ' + monitored_node);
+        getItemsValue(staFaultNodeId, function (err, nodeIds, dataValue) {
+            if (!err) {
                 //no error
-                if(!dataValue.value.value){
-                    if(dataValueOfMonitor.value.value === true){
+                if (!dataValue.value.value) {
+                    if (dataValueOfMonitor.value.value === true) {
                         data.value = true;
-                        setItemValue(staStartingNodeId,data,function () {
+                        setItemValue(staStartingNodeId, data, function () {
                             setTimeout(function () {
                                 data.value = false;
-                                setItemValue(staStoppingNodeId,data,function () {});
-                                setItemValue(staStoppedNodeId,data,function () {});
-                                setItemValue(staStartingNodeId,data,function () {
+                                setItemValue(staStoppingNodeId, data, function () {
+                                });
+                                setItemValue(staStoppedNodeId, data, function () {
+                                });
+                                setItemValue(staStartingNodeId, data, function () {
                                     setTimeout(function () {
                                         data.value = true;
-                                        setItemValue(staStartedNodeId,data,function () {});
-                                    },3000);
+                                        setItemValue(staStartedNodeId, data, function () {
+                                        });
+                                    }, 3000);
 
                                 });
 
 
-                            },2000);
+                            }, 2000);
                         });
 
-                    }else{
+                    } else {
                         data.value = true;
-                        setItemValue(staStoppingNodeId,data,function () {
+                        setItemValue(staStoppingNodeId, data, function () {
                             setTimeout(function () {
                                 data.value = false;
-                                setItemValue(staStartingNodeId,data,function () {});
-                                setItemValue(staStartedNodeId,data,function () {});
-                                setItemValue(staStoppingNodeId,data,function () {});
+                                setItemValue(staStartingNodeId, data, function () {
+                                });
+                                setItemValue(staStartedNodeId, data, function () {
+                                });
+                                setItemValue(staStoppingNodeId, data, function () {
+                                });
                                 data.value = true;
-                                setItemValue(staStoppedNodeId,data,function () {});
-                            },2000);
+                                setItemValue(staStoppedNodeId, data, function () {
+                                });
+                            }, 2000);
                         });
                     }
 
-                }else{
-                    log('D','Element state is fault. ');
+                } else {
+                    log('D', 'Element state is fault. ');
+                }
+            }
+        });
+    }
+
+    if (monitored_node === jobIdNodeId) {
+        log('D', 'monitored_node: ' + monitored_node);
+        getItemsValue(ints01StaFaultNodeId, function (err, nodeIds, dataValue) {
+            if (!err) {
+                //no error
+                if (!dataValue.value.value) {
+                    if (dataValueOfMonitor.value.value > -1) {
+                        data.value = true;
+                        setItemValue(ints01StaStartingNodeId, data, function () {
+                            setTimeout(function () {
+                                data.value = false;
+                                setItemValue(ints01StaStoppingNodeId, data, function () {
+                                });
+                                setItemValue(ints01StaStoppedNodeId, data, function () {
+                                });
+                                setItemValue(ints01StaStartingNodeId, data, function () {
+                                    setTimeout(function () {
+                                        data.value = true;
+                                        setItemValue(ints01StaStartedNodeId, data, function () {
+                                        });
+                                    }, 3000);
+
+                                });
+
+
+                            }, 2000);
+                        });
+                        setItemValue(int1StaStartingNodeId, data, function () {
+                            setTimeout(function () {
+                                data.value = false;
+                                setItemValue(int1StaStoppingNodeId, data, function () {
+                                });
+                                setItemValue(int1StaStoppedNodeId, data, function () {
+                                });
+                                setItemValue(int1StaStartingNodeId, data, function () {
+                                    setTimeout(function () {
+                                        data.value = true;
+                                        setItemValue(int1StaStartedNodeId, data, function () {
+                                        });
+                                    }, 3000);
+
+                                });
+
+
+                            }, 2000);
+                        });
+
+
+                    }
+
+                } else {
+                    log('D', 'Element state is fault. ');
                 }
             }
         });
@@ -442,7 +525,7 @@ async.series([
                 the_session = session;
                 console.log(" session created".yellow);
                 console.log(" sessionId : ", session.sessionId.toString());
-            }else{
+            } else {
                 console.log('err: ' + err);
             }
             callback(err);
@@ -498,9 +581,9 @@ async.series([
     },
     function MonitorAllNode(callback) {
         var prefix = 'ns=1;s=PLC1';
-        var lines=[];
-        var nodeId ='';
-        var infos=[];
+        var lines = [];
+        var nodeId = '';
+        var infos = [];
         var pathInfo = '';
         var type = '';
 
@@ -510,13 +593,13 @@ async.series([
             }
             else {
                 lines = data.split('\n');
-                nodeId= 'ns=1;s=PLC1';
+                nodeId = 'ns=1;s=PLC1';
                 //remove header
                 lines.splice(0, 1);
-                log('D','lines length: ' + lines.length);
+                log('D', 'lines length: ' + lines.length);
                 lines.forEach(function (line) {
 
-                    infos= [];
+                    infos = [];
                     // log('D','line: ' + line);
 
                     if (line) {
@@ -529,28 +612,35 @@ async.series([
                         pathInfo = infos[0];
                         type = infos[2];
                         //remove double quotes
-                        pathInfo = prefix + '.' + pathInfo.substring(1, pathInfo.length-1);
+                        pathInfo = prefix + '.' + pathInfo.substring(1, pathInfo.length - 1);
                         // log('D','pathInfo: ' + pathInfo);
 
-                        monitor_a_variable_node_value(pathInfo,monitor_node_callback);
+                        monitor_a_variable_node_value(pathInfo, monitor_node_callback);
 
                     }
                 });
             }
 
         });
-        var data ={
+        var data = {
             type: DataType.Boolean,
             value: false
         };
-        setItemValue(cmdManualNodeId,data,function () {});
-        setItemValue(staFaultNodeId,data,function () {});
-        setItemValue(valInput1NodeId,data,function () {});
-        setItemValue(staStartingNodeId,data,function () {});
-        setItemValue(staStartedNodeId,data,function () {});
-        setItemValue(staStoppingNodeId,data,function () {});
+        setItemValue(cmdManualNodeId, data, function () {
+        });
+        setItemValue(staFaultNodeId, data, function () {
+        });
+        setItemValue(valInput1NodeId, data, function () {
+        });
+        setItemValue(staStartingNodeId, data, function () {
+        });
+        setItemValue(staStartedNodeId, data, function () {
+        });
+        setItemValue(staStoppingNodeId, data, function () {
+        });
         data.value = true;
-        setItemValue(staStoppedNodeId,data,function () {});
+        setItemValue(staStoppedNodeId, data, function () {
+        });
     },
     function Initiliaze(callback) {
         console.log('Last function.');
@@ -584,14 +674,13 @@ function getBrowseName(nodeId, callback) {
 };
 
 
-
 function getItemsValue(nodeIds, callback) {
     the_session.readVariableValue(nodeIds, function (err, dataValue, diagnosticsInfo) {
 
         console.log(" --- read nodes---");
         if (!err) {
-            callback(err,nodeIds, dataValue);
-        }else {
+            callback(err, nodeIds, dataValue);
+        } else {
             callback(err, null);
         }
         console.log(" -----------------------");
