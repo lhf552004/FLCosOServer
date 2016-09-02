@@ -140,7 +140,7 @@ function getType(typeFromCsv) {
         DataType: 0,
         value: null
     };
-    if (typeFromCsv.indexOf('INT') >= 0) {
+    if (typeFromCsv.toUpperCase().indexOf('INT') >= 0) {
         theType.typeName = 'Int16';
         theType.DataType = DataType.Int16;
         theType.value = 0;
@@ -580,6 +580,10 @@ server.on("post_initialize", function () {
     var HighLevel = addressSpace.addFolder(Element, {
         nodeId: "ns=1;s=PLC1.Element.HighLevel",
         browseName: "HighLevel"
+    });
+    var LowLevel = addressSpace.addFolder(Element, {
+        nodeId: "ns=1;s=PLC1.Element.LowLevel",
+        browseName: "LowLevel"
     });
     var SimpleMotor = addressSpace.addFolder(Element, {
         nodeId: "ns=1;s=PLC1.Element.SimpleMotor",
