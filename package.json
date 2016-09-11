@@ -13,9 +13,9 @@
   "author": "Allen Li",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lhf552004/FLCosServer/issues"
+    "url": "https://github.com/lhf552004/OPCUAServer/issues"
   },
-  "homepage": "https://github.com/lhf552004/FLCosServer#readme",
+  "homepage": "https://github.com/lhf552004/OPCUAServer#readme",
   "dependencies": {
     "async": "^2.0.1",
     "better-assert": "^1.0.2",
