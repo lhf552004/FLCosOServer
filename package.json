@@ -2,20 +2,20 @@
   "name": "fast-light-control",
   "version": "1.0.0",
   "description": "fast light control",
-  "main": "FLCos.js",
+  "main": "OPCUAServer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lhf552004/FLCos.git"
+    "url": "git+https://github.com/lhf552004/OPCUAServer.git"
   },
   "author": "Allen Li",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lhf552004/FLCos/issues"
+    "url": "https://github.com/lhf552004/FLCosServer/issues"
   },
-  "homepage": "https://github.com/lhf552004/FLCos#readme",
+  "homepage": "https://github.com/lhf552004/FLCosServer#readme",
   "dependencies": {
     "async": "^2.0.1",
     "better-assert": "^1.0.2",
